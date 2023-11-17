@@ -1,0 +1,32 @@
+train_dataset_path: data/hybridization_probability/datasets/artificial_dataset_35_train.csv   # path to the train dataset
+validation_dataset_path: data/hybridization_probability/datasets/artificial_dataset_35_validation.csv   # path to the validation dataset
+test_dataset_path: data/hybridization_probability/datasets/artificial_dataset_35_test.csv   # path to the test dataset
+
+models_path: data/hybridization_probability/models
+
+# fixed hyperparameters
+model: rnn  # model architectura tha will be trained
+input_size: 8 # dimension of the input data
+features_size: 6 # number of additional features
+include_features: False # include affitional features
+
+n_trials: 50  # number of hyperparameters combinations optuna will try
+n_epochs: 1000 # maximum number of epoch executed during training 
+patience: 200
+scheduler_factor: 0.5
+scheduler_patience: 20
+
+# tunable hyperparameters: will be sampled in the interval [min, max]
+hidden_size: [32, 128] # dimension of the hidden layers
+hidden_size_ecoder: [16, 64] # dimension of the hidden layer of the ecoder
+n_layers: [1, 4]  # number of stacked rnns
+n_layers_mlp: [2,5] # number of layers of the mlps
+n_layers_encoder: [2, 5] # number of layers of the encoder
+nonlinearity: [relu, tanh]  # non -linear function of the RNN block
+act_function: [relu, tanh]  # activation function of the mlp blocks
+pool: [max, sum]
+dropout: [0, 0.2]
+bidirectional: [True, False]
+
+batch_size: [32, 256]
+lr: [0.0001, 0.001] # learning rate sampled from a loguniform distribution

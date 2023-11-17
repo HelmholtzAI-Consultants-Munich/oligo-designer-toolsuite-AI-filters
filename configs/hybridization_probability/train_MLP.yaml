@@ -1,0 +1,25 @@
+train_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_train.csv   # path to the train dataset
+validation_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_validation.csv   # path to the validation dataset
+test_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_test.csv   # path to the test dataset
+models_path: data/hybridization_probability/models
+
+# fixed hyperparameters
+model: mlp  # model architectura tha will be trained
+input_size: 286 # dimension of the input data
+
+n_trials: 50  # number of hyperparameters combinations optuna will try
+n_epochs: 1000 # maximum number of epoch executed during training 
+split_lengths: [0.4, 0.2, 0.4]  # train , validation and test splits
+split_seed: 1234
+patience: 50
+scheduler_factor: 0.5
+scheduler_patience: 15
+
+# tunable hyperparameters: will be sampled in the interval [min, max]
+hidden_size: [32, 128] # dimension of the hidden layers
+n_layers: [1, 5]  # number of layers
+act_function: [relu, tanh] # activation function of the mlp blocks
+dropout: [0, 0.5] # dropot probability
+
+batch_size: [32, 256]
+lr: [0.00001, 0.01]  # learning rate sampled from a loguniform distribution
