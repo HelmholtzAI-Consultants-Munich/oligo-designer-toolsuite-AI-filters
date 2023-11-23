@@ -16,7 +16,7 @@
 
 ### User's commands, apps, parameters, etc. for e.g:
 
-python oligo_seq/pipelines/generate_artificial_dataset.py -c config/generate_artificial_dataset.yaml
+python odt_ai_filters/_hybridization_probability/generate_artificial_dataset.py -c configs/hybridization_probability/generate_artificial_dataset.yaml
 
 ### Exit
 exit 0

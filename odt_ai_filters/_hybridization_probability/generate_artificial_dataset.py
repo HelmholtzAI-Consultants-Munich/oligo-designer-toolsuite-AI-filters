@@ -95,7 +95,7 @@ def generate_off_targets(sequence: Seq, config) -> list[Tuple[str,str, int, floa
             for _ in range(i):
                 nt = random.choice(['A', 'T', 'C', 'G'])
                 target.insert(insertion_point, nt)
-                new_sequence.insert(insertion_point, 'N') # generate to have a correct alignement with of the sequnces (N with be encoded as a 0 vector)
+                new_sequence.insert(insertion_point, '-') # generate to have a correct alignement with of the sequnces (- with be encoded as a 0 vector)
             off_target_regions.append((str(new_sequence), str(target), i, duplexing_log_scores(str(sequence), str(target), model, config["concentration"])))
             # delete i nts
             target = MutableSeq(sequence)
@@ -104,7 +104,7 @@ def generate_off_targets(sequence: Seq, config) -> list[Tuple[str,str, int, floa
                 target.pop(deletion_point)
             new_target = MutableSeq(target)
             for _ in range(i):
-                new_target.insert(deletion_point, 'N') # generate to have a correct alignement with of the sequnces
+                new_target.insert(deletion_point, '-') # generate to have a correct alignement with of the sequnces
             off_target_regions.append((str(sequence), str(new_target), i, duplexing_log_scores(str(sequence), str(target), model, config["concentration"])))
     return off_target_regions
 
@@ -137,7 +137,7 @@ def main():
     that contains the oligo sequence, the exact on-target region and the off-target. The oligo, on-target and off-target
      strands are initially set at the same concentration $C_{in}$ and we define the duplexing score as: 
     
-    log( C_{oligo + off-t} /C_{in} + eps ). 
+    log( C_{oligo + off-t} /C_{oligo + off-t}  + C_{oligo + on-t}  ). 
     
     The oligos, the on-target regions and off-target regions are inserted in order to compare the amount of oligos that 
     bind to one and to the other. Additionally the log is used to sterch the scored distribution making them 

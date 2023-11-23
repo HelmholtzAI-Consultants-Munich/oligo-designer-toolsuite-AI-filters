@@ -45,7 +45,7 @@ class MLPDataset(data.Dataset):
                 nt_encoding = torch.tensor([0,0,1,0])
             elif nt == 'T' or nt == 't':
                 nt_encoding = torch.tensor([0,0,0,1])
-            elif nt == 'N':
+            elif nt == '-':
                 nt_encoding = torch.tensor([0,0,0,0])
             else:
                 Warning(f"Nucleotide {nt} not recognized.")
@@ -122,7 +122,7 @@ class RNNDatasetInference(data.Dataset):
             nt_encoding = [0,0,1,0]
         elif nt == 'G' or nt == 'g':
             nt_encoding = [0,0,0,1]
-        elif nt == 'N':
+        elif nt == '-':
             nt_encoding = [0,0,0,0]
         else:
             Warning(f"Nucleotide {nt} not recognized.")
