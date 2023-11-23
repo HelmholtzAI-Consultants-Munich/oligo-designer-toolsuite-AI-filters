@@ -18,7 +18,7 @@ nupack_cache: 8.0
 nupack_threads: 60
 
 ######### only for custom source ##########
-file_annotation : data/annotations/custom_GCF_000001405.40_GRCh38.p14_genomic_chr16.gtf  # GTF file with gene annotation
-file_sequence : data/annotations/custom_GCF_000001405.40_GRCh38.p14_genomic_chr16.fna  # FASTA file with genome sequence
+file_annotation : ODT-AI-Filters/data/annotations/GCF_000001405.40_GRCh38.p14_genomic.gtf  # GTF file with gene annotation
+file_sequence : ODT-AI-Filters/data/annotations/GCF_000001405.40_GRCh38.p14_genomic.fna  # FASTA file with genome sequence
 files_source: NCBI # optional: original source of the genomic files
 genome_assembly: GRCh38  # optional: genome assembly of provided annotation, leave empty if unknown
