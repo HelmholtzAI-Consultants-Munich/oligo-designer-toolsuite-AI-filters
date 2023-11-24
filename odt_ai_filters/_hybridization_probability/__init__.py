@@ -1,4 +1,4 @@
 from _dataset import *
 from _models import *
 
-_all_ = []
+__all__ = [MLPDataset, RNNDataset, RNNDatasetInference, pack_collate, OligoMLP, OligoRNN, OligoLSTM]

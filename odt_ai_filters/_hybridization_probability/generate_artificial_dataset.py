@@ -158,7 +158,8 @@ def main():
     args = parser.parse_args()
     with open(args.config, "r") as handle:
         config = yaml.safe_load(handle)
-    dataset_name = f"artificial_dataset_{config['min_length']}_{config['max_length']}"
+    size = config["n_oligos"]*config["n_mutations_per_type"]*(config["max_mutations"] + config["max_bulges_size"])
+    dataset_name = f"artificial_dataset_{config['min_length']}_{config['max_length']}_{size}"
     # set random seed for reproducibility
     random.seed(config["seed"])
     # generate directories
