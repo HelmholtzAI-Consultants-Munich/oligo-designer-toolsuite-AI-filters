@@ -218,11 +218,6 @@ def main():
     logging.info("Transcriptome generated.")
     # oligo database
     oligo_database = OligoDatabase(
-        file_fasta=file_transcriptome,
-        files_source=region_generator.files_source,
-        species=region_generator.species,
-        annotation_release=region_generator.annotation_release,
-        genome_assembly=region_generator.genome_assembly,
         n_jobs=config["n_jobs"],
         dir_output="output_odt",
     )
@@ -230,6 +225,7 @@ def main():
         lines = handle.readlines()
         genes = [line.rstrip() for line in lines]
     oligo_database.create_database(
+        file_fasta=file_transcriptome,
         oligo_length_min = config["min_length"], 
         oligo_length_max = config["max_length"], 
         region_ids = genes
