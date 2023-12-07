@@ -5,8 +5,8 @@ import numpy as np
 import torch
 
 from ._api_base import APIBase
-from .._hybridization_probability._dataset import RNNDatasetInference ,pack_collate
-from .._hybridization_probability._models import OligoLSTM
+from ..hybridization_probability._dataset import RNNDatasetInference ,pack_collate
+from ..hybridization_probability._models import OligoLSTM
 
 
 
@@ -15,7 +15,14 @@ class APIHybridizationProbability(APIBase):
     def __init__(self, ai_filter_path) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         # get repository location
-        repo_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)) )
+        repo_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        if ai_filter_path is None:
+            # if none the predefined models are used
+            repo_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.ai_filter_path = os.path.join(repo_path,"data", "pretrained_models", "hybridization_probability.pt")
+        else:
+            self.ai_filter_path = ai_filter_path
         ai_filter_path = os.path.join(repo_path,"data", "models", "hybridization_probability.pt")
         loaded_model = torch.load(ai_filter_path, map_location=self.device)
         # load the model with the right hyperparameters

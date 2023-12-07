@@ -26,11 +26,13 @@ import wandb
 
 class Objective:
 
-    def __init__(self, config, train_dataset, validation_dataset, logging: logging.Logger) -> None:
+    def __init__(self, config, train_dataset, validation_dataset, logging: logging.Logger, model_dir: str) -> None:
         self.config = config
         self.train_dataset = train_dataset
         self.validation_dataset = validation_dataset
         self.logging = logging
+        self.model_dir = model_dir
+
     def __call__(self, trail: optuna.Trial) -> Any:
 
         self.logging.info(f"Start trail number {trail.number}.")
@@ -138,8 +140,6 @@ class Objective:
         # store the model #
         ###################
 
-        model_dir = os.path.join(self.config["models_path"], self.config["model"], os.path.basename(self.config['train_dataset_path']).split('.')[0])
-        os.makedirs(model_dir, exist_ok=True)
         model_file = f"{self.config['model']}_{trail.number}.pt"
         # save the model weights and hyperparameters in the same dictionary
         torch.save({"weights": best_model, "hyperparameters": hyperparameters}, os.path.join(model_dir, model_file)) # store the best model and the hyperparameters
@@ -238,12 +238,14 @@ def main():
     optuna.logging.disable_default_handler()  # Stop showing logs in sys.stderr.
     study = optuna.create_study()
     logging.info("Study created.")
-    study.optimize(func=Objective(config=config, train_dataset=train_dataset, validation_dataset=validation_dataset, logging=logging), n_trials=config["n_trials"])
+    # create model directory
+    model_dir = os.path.join(config["models_path"], config["model"], os.path.basename(config['train_dataset_path']).split('.')[0])
+    os.makedirs(model_dir, exist_ok=True)
+    study.optimize(func=Objective(config=config, train_dataset=train_dataset, validation_dataset=validation_dataset, logging=logging, model_dir=model_dir), n_trials=config["n_trials"])
 
     # test on the vest model on the test dataset (MSE on the real coordinates)
     best_study = study.best_trial.number
-    bect_model_dir = os.path.join(config["models_path"], config["model"], os.path.basename(config['train_dataset_path']).split('.')[0])
-    best_model_path = os.path.join(bect_model_dir, f"{config['model']}_{best_study}.pt")
+    best_model_path = os.path.join(model_dir, f"{config['model']}_{best_study}.pt")
     device = torch.device("cuda") if torch.cuda.is_available() is True else torch.device("cpu")
     best_model_file = torch.load(best_model_path, map_location=device)
     if config["model"] == "mlp":
@@ -265,7 +267,6 @@ def main():
     loss = nn.MSELoss()
 
     #evaluate the best model
-
     cumulative_loss = torch.zeros(1,).to(device)
     with torch.no_grad():
         for batch in test_loader:
@@ -278,6 +279,9 @@ def main():
             cumulative_loss += loss(pred, label)
     loss = cumulative_loss/len(test_loader)
     logging.info(f"MSE error on the test set of the best model extracted is : {loss}")
+
+    # store the best model
+    torch.save(best_model_file, os.path.join(model_dir, "hybridization_probability.pt"))
 
 
 if __name__ == "__main__":
