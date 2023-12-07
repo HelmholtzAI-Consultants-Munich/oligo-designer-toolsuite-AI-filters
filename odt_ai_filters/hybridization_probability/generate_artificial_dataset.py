@@ -109,7 +109,7 @@ def generate_off_targets(sequence: Seq, config) -> list[Tuple[str,str, int, floa
     return off_target_regions
 
 def generate_dataset(alignments: list):
-    dataset = pd.DataFrame(index=list(range(len(alignments))), columns=["query_sequence", "query_length", "query_GC_content", "off_target_sequence", "target_length", "target_GC_content", "tm_diff", "number_mismatches", "duplexing_log_score"])
+    dataset = pd.DataFrame(index=list(range(len(alignments))), columns=["query_sequence", "query_length", "query_GC_content", "off_target_sequence", "off_target_length", "off_target_GC_content", "number_mismatches", "duplexing_log_score"])
     for i, (oligo, off_target, nr_mismatches, d_log_score) in enumerate(alignments):
         dataset.loc[i] = [
             oligo, #oligo sequence
@@ -118,7 +118,6 @@ def generate_dataset(alignments: list):
             off_target,
             len(off_target), # off target length
             round(gc_fraction(off_target)), # off target gc content
-            mt.Tm_NN(oligo) - mt.Tm_NN(off_target),
             nr_mismatches,
             d_log_score,
         ]
