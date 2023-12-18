@@ -13,7 +13,7 @@ sys.path.append(os.getcwd())
 
 import torch
 from torch import nn
-from torch.utils import data
+from torch.utils.data import DataLoader
 from torch import optim
 import optuna
 from _dataset import *
@@ -92,8 +92,8 @@ class Objective:
         #####################
 
         batch_size = trail.suggest_int("batch_size", low=self.config["batch_size"][0], high=self.config["batch_size"][1])
-        train_loader = data.DataLoader(dataset=self.train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
-        validation_loader = data.DataLoader(dataset=self.validation_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+        train_loader = DataLoader(dataset=self.train_dataset, batch_size=batch_size, shuffle=True, collate_fn=collate_fn)
+        validation_loader = DataLoader(dataset=self.validation_dataset, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 
         ####################
         # define optimizer #
@@ -142,11 +142,11 @@ class Objective:
 
         model_file = f"{self.config['model']}_{trail.number}.pt"
         # save the model weights and hyperparameters in the same dictionary
-        torch.save({"weights": best_model, "hyperparameters": hyperparameters}, os.path.join(model_dir, model_file)) # store the best model and the hyperparameters
+        torch.save({"weights": best_model, "hyperparameters": hyperparameters}, os.path.join(self.model_dir, model_file)) # store the best model and the hyperparameters
         return best_validation_loss
 
 
-    def train_epoch(self, model: nn.Module, dataloader: data.DataLoader, loss: nn.Module, optimizer: optim.Optimizer, device: torch.device) -> float:
+    def train_epoch(self, model: nn.Module, dataloader: DataLoader, loss: nn.Module, optimizer: optim.Optimizer, device: torch.device) -> float:
         model.train()
         cumulative_loss = torch.zeros(1,).to(device)
         for batch in dataloader:
@@ -165,7 +165,7 @@ class Objective:
         return loss.item()
 
 
-    def eval_epoch(self,model: nn.Module, dataloader: data.DataLoader, loss: nn.Module, device: torch.device) -> float:
+    def eval_epoch(self,model: nn.Module, dataloader: DataLoader, loss: nn.Module, device: torch.device) -> float:
         model.eval()
         cumulative_loss = torch.zeros(1,).to(device)
         with torch.no_grad():
@@ -263,7 +263,7 @@ def main():
     model.load_state_dict(best_model_file["weights"])
     model.to(device=device)
     model.eval()
-    test_loader = data.DataLoader(dataset=test_dataset, batch_size=32, shuffle=False, collate_fn=collate_fn)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=32, shuffle=False, collate_fn=collate_fn)
     loss = nn.MSELoss()
 
     #evaluate the best model

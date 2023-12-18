@@ -21,7 +21,7 @@ class MLPDataset(data.Dataset):
             off_target = row["off_target_sequence"]
             encodings[i,:] = torch.cat([self.encode_sequence(oligo), self.encode_sequence(off_target)])
         self.labels = torch.tensor(database["duplexing_log_score"], dtype=torch.double)
-        features = torch.tensor(database[["oligo_length", "oligo_GC_content", "off_target_legth", "off_target_GC_content", "number_mismatches"]].to_numpy(), dtype=torch.double)
+        features = torch.tensor(database[["oligo_length", "oligo_GC_content", "off_target_length", "off_target_GC_content", "number_mismatches"]].to_numpy(), dtype=torch.double)
         self.data = torch.cat([encodings, features], dim=1)
 
 
@@ -93,7 +93,7 @@ class RNNDatasetInference(data.Dataset):
             for j in range(len(query)):
                 encoding[j,:] = torch.tensor(self.encode_nt(query[j]) + self.encode_nt(target[j]), dtype=torch.double)
             self.sequences.append(encoding)
-        self.features = torch.tensor(dataset[["query_length", "query_GC_content", "off_target_legth", "off_target_GC_content", "number_mismatches"]].to_numpy(), dtype=torch.double)
+        self.features = torch.tensor(dataset[["query_length", "query_GC_content", "off_target_length", "off_target_GC_content", "number_mismatches"]].to_numpy(), dtype=torch.double)
         
 
     def __len__(self):
