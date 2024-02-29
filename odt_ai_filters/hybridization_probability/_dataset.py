@@ -97,7 +97,7 @@ class RNNDatasetInference(data.Dataset):
         
 
     def __len__(self):
-        return self.labels.shape[0]
+        return len(self.sequences)
     
 
     def __getitem__(self, index) -> Tuple[torch.tensor, torch.tensor, torch.torch.tensor]:
@@ -199,3 +199,28 @@ def pack_collate(batch: list) -> Tuple[rnn.PackedSequence, torch.Tensor, torch.T
     sorted_sequences = [sequences[i] for i in perm_idx]
     padded_sequences = rnn.pad_sequence(sequences=sorted_sequences, batch_first=True)
     return rnn.pack_padded_sequence(input=padded_sequences, lengths=lengths, batch_first=True), features[perm_idx,:], labels[perm_idx] # reorder according to the original ordering
+
+
+def pack_collate_inference(batch: list) -> Tuple[rnn.PackedSequence, torch.Tensor, torch.Tensor]:
+    """Collate function for the ``Dataloader`` class that saves the sequences in ``PackedSeqeunces`` classes.
+    This allows to process the data in batches without the need of padding. This function is used at inference time, 
+    where the dataset does not contain the label information.
+
+    :param batch: Output of the batch sampler.
+    :type batch: list
+    :return: Packed inpud data
+    :rtype: Tuple[rnn.PackedSequence, torch.Tensor, torch.Tensor]
+    """
+    # TODO: adjust with inference time
+    tabular = []
+    sequences = []
+    for sequence, features in batch:
+        tabular.append((features))
+        sequences.append(sequence)
+    features = data._utils.collate.default_collate(tabular)
+    # sort the sequences in decreasing length order
+    lengths = torch.tensor(list(map(len, sequences)))
+    lengths, perm_idx = lengths.sort(0, descending=True)
+    sorted_sequences = [sequences[i] for i in perm_idx]
+    padded_sequences = rnn.pad_sequence(sequences=sorted_sequences, batch_first=True)
+    return rnn.pack_padded_sequence(input=padded_sequences, lengths=lengths, batch_first=True), features[perm_idx,:]# reorder according to the original ordering

@@ -3,9 +3,10 @@ import os
 import pandas as pd
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 
 from ._api_base import APIBase
-from ..hybridization_probability._dataset import RNNDatasetInference ,pack_collate
+from ..hybridization_probability._dataset import RNNDatasetInference ,pack_collate_inference
 from ..hybridization_probability._models import OligoLSTM, OligoRNN
 
 
@@ -30,14 +31,14 @@ class APIHybridizationProbability(APIBase):
         self.model.to(self.device)
         self.model.eval()
         # funtion to restore the predictions to the hybridization probablity
-        self.inverse_predictions = lambda predictions: np.exp(predictions*loaded_model["hyperparameters"]["dataset"]["std"] + loaded_model["hyperparameters"]["dataset"]["mean"])
+        self.inverse_predictions = lambda predictions: 10**(predictions*loaded_model["hyperparameters"]["dataset"]["std"] + loaded_model["hyperparameters"]["dataset"]["mean"])
     
     
     def predict(self, data: pd.DataFrame):
         #set batch size based on the hardware available
         batch_size = 32 if self.device == "cuda" else 1
         dataset = RNNDatasetInference(data)
-        dataloader = data.DataLoader(dataset, batch_size=batch_size, collate_fn = pack_collate)
+        dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn = pack_collate_inference)
         predictions = torch.tensor([])
         for data in dataloader:
             with torch.no_grad():
