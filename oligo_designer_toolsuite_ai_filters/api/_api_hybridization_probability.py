@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 import numpy as np
@@ -37,11 +37,12 @@ class APIHybridizationProbability(APIBase):
         self.inverse_predictions = lambda predictions: 10**(predictions*loaded_model["hyperparameters"]["dataset"]["std"] + loaded_model["hyperparameters"]["dataset"]["mean"])
     
     
-    def predict(self, queries: List[Seq.Seq], gapped_queries: List[Seq.Seq], targets: List[Seq.Seq], gapped_targets: List[Seq.Seq]):
+    def predict(self, queries: List[Seq.Seq], gapped_queries: List[Seq.Seq], references: List[Seq.Seq], gapped_references: List[Seq.Seq], batch_size: Optional[int] = None):
         # generate the dataset
-        dataset = self._generate_dataset(queries, gapped_queries, targets, gapped_targets)
+        data = self._generate_dataset(queries, gapped_queries, references, gapped_references)
         #set batch size based on the hardware available
-        batch_size = 32 if self.device == "cuda" else 1 #TODO: find optimal value
+        if batch_size is None:
+            batch_size = 1024 if self.device == "cuda" else 128 #TODO: find optimal value
         dataset = RNNDatasetInference(data)
         dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn = pack_collate_inference)
         predictions = torch.tensor([])
@@ -54,7 +55,7 @@ class APIHybridizationProbability(APIBase):
         return predictions
 
     def _generate_dataset(
-            self, queries: List[Seq.Seq], gapped_queries: List[Seq.Seq], targets: List[Seq.Seq], gapped_targets: List[Seq.Seq]
+            self, queries: List[Seq.Seq], gapped_queries: List[Seq.Seq], references: List[Seq.Seq], gapped_references: List[Seq.Seq]
     ):
         """Create a database with the information of the oligos that match the blast search.
 
@@ -62,10 +63,10 @@ class APIHybridizationProbability(APIBase):
         :type queries: list
         :param gapped_queries: List with the sequences of the query oligos with gaps.
         :type gapped_queries: list
-        :param targets: List with the sequences of the target oligos.
-        :type targets: list
-        :param gapped_targets: List with the sequences of the target oligos with gaps.
-        :type gapped_targets: list
+        :param references: List with the sequences of the reference oligos.
+        :type references: list
+        :param gapped_references: List with the sequences of the reference oligos with gaps.
+        :type gapped_references: list
         :return: dataset
         :rtype: pd.DataFrame
         """
@@ -84,11 +85,11 @@ class APIHybridizationProbability(APIBase):
         dataset["query_sequence"] = gapped_queries
         dataset["query_length"] = [len(query) for query in queries]
         dataset["query_GC_content"] = [gc_fraction(query) for query in queries]
-        dataset["off_target_sequence"] = gapped_targets
-        dataset["off_target_length"] = [len(target) for target in targets]
-        dataset["off_target_GC_content"] = [gc_fraction(target) for target in targets]
+        dataset["off_target_sequence"] = gapped_references
+        dataset["off_target_length"] = [len(reference) for reference in references]
+        dataset["off_target_GC_content"] = [gc_fraction(reference) for reference in references]
         dataset["number_mismatches"] = [
-            sum(query != target for query, target in zip(query, target))
-            for query, target in zip(gapped_queries, gapped_targets)
+            sum(query != reference for query, reference in zip(query, reference))
+            for query, reference in zip(gapped_queries, gapped_references)
         ]
         return dataset

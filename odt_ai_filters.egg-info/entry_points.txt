@@ -1,0 +1,3 @@
+[console_scripts]
+merfish_probe_designer = oligo_designer_toolsuite.pipelines._merfish_probe_designer:main
+train = oligo_designer_toolsuite.pipelines._scrinshot_probe_designer:main

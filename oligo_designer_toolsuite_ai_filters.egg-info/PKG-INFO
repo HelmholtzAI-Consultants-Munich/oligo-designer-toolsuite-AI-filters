@@ -1,3 +1,24 @@
+Metadata-Version: 2.1
+Name: oligo-designer-toolsuite-ai-filters
+Version: 0.1.dev16+gc769cd6.d20240403
+Summary: Develop custom oligo design pipelines.
+Author: Louis Kümmerle, Francesco Campi, Chelsea Bright
+Author-email: Lisa Barros de Andrade e Sousa <lisa.barros.andrade.sousa@gmail.com>, Isra Mekki <isra.mekki@helmholtz-muenchen.de>
+Maintainer-email: Lisa Barros de Andrade e Sousa <lisa.barros.andrade.sousa@gmail.com>, Isra Mekki <isra.mekki@helmholtz-muenchen.de>
+Project-URL: documentation, https://oligo-designer-toolsuite.readthedocs.io/
+Project-URL: repository, https://github.com/HelmholtzAI-Consultants-Munich/oligo-designer-toolsuite
+Keywords: bioinformatics,probes,oligo nucleotides,probe design,oligo design
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: <3.11
+Description-Content-Type: text/markdown
+Requires-Dist: torch
+Requires-Dist: oligo-designer-toolsuite
+Requires-Dist: seaborn
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+
 # ODT-AI-Filters
 AI plug-ins for the Oligo Designer Toolsuite package
 

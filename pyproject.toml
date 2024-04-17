@@ -2,17 +2,17 @@
 requires = ["setuptools>=61.0", "setuptools_scm[toml]>=6.2"]
 
 [tool.setuptools]
-packages = ["odt_ai_filters"]
+packages = ["oligo_designer_toolsuite_ai_filters"]
 
 [tool.setuptools.dynamic]
 #version = {attr = "my_package.VERSION"}
 readme = { file = "README.md" }
 
 [tool.setuptools_scm]
-write_to = "odt_ai_filters/_version.py"
+write_to = "oligo_designer_toolsuite_ai_filters/_version.py"
 
 [project]
-name = "odt-ai-filters"
+name = "oligo-designer-toolsuite-ai-filters"
 dynamic = ["version"]
 #version = "1.0.2"
 authors = [
