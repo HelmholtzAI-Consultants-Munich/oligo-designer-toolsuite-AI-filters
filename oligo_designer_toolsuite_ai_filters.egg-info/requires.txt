@@ -1,6 +1,0 @@
-torch
-oligo-designer-toolsuite
-seaborn
-
-[dev]
-pytest
