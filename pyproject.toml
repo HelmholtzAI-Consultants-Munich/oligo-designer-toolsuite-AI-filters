@@ -16,17 +16,13 @@ name = "oligo-designer-toolsuite-ai-filters"
 dynamic = ["version"]
 #version = "1.0.2"
 authors = [
+  { name = "Francesco Campi", email = "francesco.campi@helmholtz-munich.de" },
   { name = "Lisa Barros de Andrade e Sousa", email = "lisa.barros.andrade.sousa@gmail.com" },
-  { name = "Isra Mekki", email = "isra.mekki@helmholtz-muenchen.de" },
-  { name = "Louis Kümmerle" },
-  { name = "Francesco Campi" },
-  { name = "Chelsea Bright" },
 ]
 maintainers = [
-  { name = "Lisa Barros de Andrade e Sousa", email = "lisa.barros.andrade.sousa@gmail.com" },
-  { name = "Isra Mekki", email = "isra.mekki@helmholtz-muenchen.de" },
+  { name = "Francesco Campi", email = "francesco.campi@helmholtz-munich.de" },
 ]
-description = "Develop custom oligo design pipelines."
+description = "AI plug-ins for the Oligo Designer Toolsuite package"
 keywords = [
   "bioinformatics",
   "probes",
@@ -45,15 +41,11 @@ dependencies = [
     "torch",
     "oligo-designer-toolsuite",
     "seaborn",
-
 ]
 
-[project.optional-dependencies]
-dev = ["pytest"]
 
 [project.scripts]
-train = "oligo_designer_toolsuite.pipelines._scrinshot_probe_designer:main"
-merfish_probe_designer = "oligo_designer_toolsuite.pipelines._merfish_probe_designer:main"
+
 
 
 [project.urls]
