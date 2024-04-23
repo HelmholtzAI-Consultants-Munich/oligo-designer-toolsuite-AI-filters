@@ -86,6 +86,9 @@ class Objective:
         else:
             raise ValueError(f"{self.config['model']} is not supported")
         model.to(device) # load the model on the cpu
+        # parallleize over multiple gpus if they are available
+        if torch.cuda.device_count() > 1:
+            model = nn.DataParallel(model)
         
         #####################
         # define dataloader #

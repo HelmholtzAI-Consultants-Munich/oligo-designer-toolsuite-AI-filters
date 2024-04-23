@@ -11,9 +11,10 @@ from datetime import datetime
 import multiprocess
 import iteration_utilities
 
-from oligo_designer_toolsuite.database import NcbiGenomicRegionGenerator, EnsemblGenomicRegionGenerator, CustomGenomicRegionGenerator, OligoDatabase, ReferenceDatabase
-from oligo_designer_toolsuite.oligo_property_filter import PropertyFilter, MaskedSequences
-from oligo_designer_toolsuite.oligo_specificity_filter import SpecificityFilter, ExactMatches
+from oligo_designer_toolsuite.sequence_generator import NcbiGenomicRegionGenerator, EnsemblGenomicRegionGenerator, CustomGenomicRegionGenerator
+from oligo_designer_toolsuite.database import OligoDatabase
+from oligo_designer_toolsuite.oligo_property_filter import PropertyFilter, HardMaskedSequenceFilter
+from oligo_designer_toolsuite.pipelines._base_oligo_designer import BaseOligoDesigner
 from Bio.Seq import MutableSeq, Seq
 from Bio.SeqUtils import gc_fraction
 from Bio.SeqUtils import MeltingTemp as mt
@@ -158,7 +159,7 @@ def main():
     with open(args.config, "r") as handle:
         config = yaml.safe_load(handle)
     size = config["n_oligos"]*config["n_mutations_per_type"]*(config["max_mutations"] + config["max_bulges_size"])
-    dataset_name = f"artificial_dataset_{config['min_length']}_{config['max_length']}_{size}"
+    dataset_name = f"artificial_dataset_{config['oligo_length_min']}_{config['oligo_length_max']}_{size}"
     # set random seed for reproducibility
     random.seed(config["seed"])
     # generate directories
@@ -187,69 +188,30 @@ def main():
     # generate the oligo sequences #
     ################################
 
-    if config["annotation_source"] == "ncbi":
-        # dowload the fasta files formthe NCBI server
-        region_generator = NcbiGenomicRegionGenerator(
-            taxon=config["taxon"],
-            species=config["species"],
-            annotation_release=config["annotation_release"],
-            dir_output="output_odt",
-        )
-    elif config["annotation_source"] == "ensembl":
-        # dowload the fasta files formthe NCBI server
-        region_generator = EnsemblGenomicRegionGenerator(
-            species=config["species"],
-            annotation_release=config["annotation_release"],
-            dir_output="output_odt",
-        )
-    elif config["annotation_source"] == "custom":
-        # use already dowloaded files
-        region_generator = CustomGenomicRegionGenerator(
-            annotation_file=config["file_annotation"],
-            sequence_file=config["file_sequence"],
-            files_source=config["files_source"],
-            species=config["species"],
-            annotation_release=config["annotation_release"],
-            genome_assembly=config["genome_assembly"],
-            dir_output="output_odt",
-        )
-    file_transcriptome = region_generator.generate_transcript_reduced_representation(include_exon_junctions=False)
-    logging.info("Transcriptome generated.")
-    # oligo database
-    oligo_database = OligoDatabase(
-        n_jobs=config["n_jobs"],
-        dir_output="output_odt",
-    )
+    oligo_designer = BaseOligoDesigner(dir_output = "output_odt", log_name="database_generation")
+    oligo_designer.load_annotations(source=config["source"], source_params=config["source_params"])
+
     with open(config["file_genes"]) as handle:
         lines = handle.readlines()
         genes = [line.rstrip() for line in lines]
-    oligo_database.create_database(
-        file_fasta=file_transcriptome,
-        oligo_length_min = config["min_length"], 
-        oligo_length_max = config["max_length"], 
-        region_ids = genes
+
+    oligo_database, _ = oligo_designer.create_oligo_database(
+        regions=genes,
+        genomic_regions=config["genomic_regions"],
+        oligo_length_min=config["oligo_length_min"],
+        oligo_length_max=config["oligo_length_max"],
+        min_oligos_per_region=0,
+        n_jobs=config["n_jobs"],
     )
+    
     logging.info("Oligo seqeunces generated.")
     for gene in oligo_database.database.keys():
         logging.info(f"Gene {gene} has {len(oligo_database.database[gene].keys())} oligos.")
     # Property filtering
-    masked_seqeunces = MaskedSequences()
+    masked_seqeunces = HardMaskedSequenceFilter()
     property_filter = PropertyFilter(filters=[masked_seqeunces])
-    oligo_database = property_filter.apply(oligo_database=oligo_database, n_jobs=config["n_jobs"])
+    oligo_database = property_filter.apply(oligo_database=oligo_database, n_jobs=config["n_jobs"], sequence_type="oligo")
     logging.info("Oligo sequences filtered (property).")
-    # Specificity filtering
-    # reference_database = ReferenceDatabase(
-    #     file_fasta=file_transcriptome, # or just the transciptome?
-    #     files_source="NCBI", 
-    #     species="Human", 
-    #     annotation_release="110", 
-    #     genome_assembly="GRCh38",
-    #     dir_output="output_odt",
-    # )
-    # exact_matches = ExactMatches(dir_specificity="specificity")
-    # specificity_filter = SpecificityFilter(filters=[exact_matches])
-    # oligo_database = specificity_filter.apply(oligo_database=oligo_database, reference_database=reference_database, n_jobs=config["n_jobs"])
-    # logging.info("Oligo sequences filtered (spe).")
 
     ##############################
     # sample the oligo sequences #
@@ -260,15 +222,15 @@ def main():
     oligo_length = []
     for gene, oligos in oligo_database.database.items():
         for oligo, features in oligos.items():
-            gc_content.append([gc_fraction(features["sequence"]), "Original"])
-            oligo_length.append([features["length"], "Original" ])
+            gc_content.append([gc_fraction(features["oligo"]), "Original"])
+            oligo_length.append([len(features["oligo"]), "Original" ])
     # split the genes
     genes = list(oligo_database.database.keys())
     genes_train, genes_validation, genes_test = split_list(genes, config["splits_size"])
     # create list of oligos
-    oligos_train = [oligo_database.database[gene][oligo_id]["sequence"] for gene in genes_train for oligo_id in oligo_database.database[gene]]
-    oligos_validation = [oligo_database.database[gene][oligo_id]["sequence"] for gene in genes_validation for oligo_id in oligo_database.database[gene]]
-    oligos_test = [oligo_database.database[gene][oligo_id]["sequence"] for gene in genes_test for oligo_id in oligo_database.database[gene]]
+    oligos_train = [oligo_database.database[gene][oligo_id]["oligo"] for gene in genes_train for oligo_id in oligo_database.database[gene]]
+    oligos_validation = [oligo_database.database[gene][oligo_id]["oligo"] for gene in genes_validation for oligo_id in oligo_database.database[gene]]
+    oligos_test = [oligo_database.database[gene][oligo_id]["oligo"] for gene in genes_test for oligo_id in oligo_database.database[gene]]
     # sample the oligos
     sample_train = round(config["splits_size"][0]*config["n_oligos"])
     sample_validation = round(config["splits_size"][1]*config["n_oligos"])

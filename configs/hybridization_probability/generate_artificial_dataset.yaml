@@ -1,24 +1,28 @@
 dir_output : data/hybridization_probablity/datasets # path to the folder where the dataset will be stored
-min_length: 15  # minimum length of the oligos
-max_length: 100  # maximum length of the oligos
+oligo_length_min: 15  # minimum length of the oligos
+oligo_length_max: 100  # maximum length of the oligos
 splits_size: [0.5, 0.2, 0.3]  # train , validation and test splits
 file_genes: "data/genes/custom_10.txt"  # path to the file containing the desired genes
 max_mutations: 10  # maximum number of mutated nucleotides (mm)
 max_bulges_size: 3  # maximum size of insertion or deletions (mb)
 n_mutations_per_type: 5  # number of off-targets generate for each class of perturbations (nm)
-n_oligos: 5000  # number of sampled oligos (no) (the final dataset size will be O(no * nm * (mm + mb)) )
+n_oligos: 5  # number of sampled oligos (no) (the final dataset size will be O(no * nm * (mm + mb)) )
 concentration: 1e-6  # strand concentrations int the tube
-annotation_source: custom  # source of the genomic files, available options are [custom, ncbi, ensembl]
-taxon: vertebrate_mammalian  # taxon of teh species we are intereste, oly for source: ncbi
-species: Homo_sapiens # optional: species of provided annotation, leave empty if unknown
-annotation_release: 110 # optional: release number of provided annotation, leave empty if unknown
-n_jobs: 30  # number of available CPUs (if None the maximum number of CPUs will be used)
+n_jobs: 5  # number of available CPUs (if None the maximum number of CPUs will be used)
 seed: 42
 nupack_cache: 8.0
 nupack_threads: 60
 
 ######### only for custom source ##########
-file_annotation : ODT-AI-Filters/data/annotations/GCF_000001405.40_GRCh38.p14_genomic.gtf  # GTF file with gene annotation
-file_sequence : ODT-AI-Filters/data/annotations/GCF_000001405.40_GRCh38.p14_genomic.fna  # FASTA file with genome sequence
-files_source: NCBI # optional: original source of the genomic files
-genome_assembly: GRCh38  # optional: genome assembly of provided annotation, leave empty if unknown
+source: custom # required: indicate that own annotation should be used
+source_params:
+    file_annotation: data/annotations/custom_GCF_000001405.40_GRCh38.p14_genomic_chr16.gtf #output_seqfish/annotation/GCF_000001405.40_GRCh38.p14_genomic.gtf # required: GTF file with gene annotation
+    file_sequence: data/annotations/custom_GCF_000001405.40_GRCh38.p14_genomic_chr16.fna #output_seqfish/annotation/GCF_000001405.40_GRCh38.p14_genomic.fna # required: FASTA file with genome sequence
+    files_source: NCBI # optional: original source of the genomic files
+    species: Homo_sapiens # optional: species of provided annotation, leave empty if unknown
+    taxon: vertebrate_mammalian # optional: taxon of the species we are intereste, only for source: ncbi
+    annotation_release: 110 # optional: release number of provided annotation, leave empty if unknown
+    genome_assembly: GRCh38  # optional: genome assembly of provided annotation, leave empty if unknown
+genomic_regions: # list of genomic region the user wants to use to generate the oligos, the vaialble options are: "gene", "intergenic", "exon", "intron", "cds", "utr", "exon_exon_junction"
+  - exon
+  - exon_exon_junction
