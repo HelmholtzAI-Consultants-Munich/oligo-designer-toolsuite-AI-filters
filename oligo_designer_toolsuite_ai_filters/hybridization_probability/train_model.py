@@ -21,6 +21,10 @@ from _models import *
 import wandb
 
 
+os.environ["WANDB_API_KEY"] = "fca16a3a714741f111075c244a99b8675fa5cfe9"
+os.environ["WANDB_MODE"] = "offline"
+
+
 
 
 

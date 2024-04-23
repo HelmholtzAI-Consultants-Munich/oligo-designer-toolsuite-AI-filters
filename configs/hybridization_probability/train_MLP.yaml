@@ -5,7 +5,7 @@ models_path: data/hybridization_probability/models
 
 # fixed hyperparameters
 model: mlp  # model architectura tha will be trained
-input_size: 286 # dimension of the input data
+input_size: 285 # dimension of the input data
 
 n_trials: 50  # number of hyperparameters combinations optuna will try
 n_epochs: 1000 # maximum number of epoch executed during training 

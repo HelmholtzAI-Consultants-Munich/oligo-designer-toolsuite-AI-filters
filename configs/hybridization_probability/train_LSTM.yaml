@@ -1,17 +1,16 @@
-train_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_train.csv   # path to the train dataset
-validation_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_validation.csv   # path to the validation dataset
-test_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_test.csv   # path to the test dataset
+train_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_325000_train.csv   # path to the train dataset
+validation_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_325000_validation.csv   # path to the validation dataset
+test_dataset_path: data/hybridization_probability/datasets/artificial_dataset_15_100_325000_test.csv   # path to the test dataset
 models_path: data/hybridization_probability/models
 
 # fixed hyperparameters
 model: lstm  # model architectura tha will be trained
 input_size: 8 # dimension of the input data
-features_size: 6 # number of additional features
-include_features: False # include affitional features
+features_size: 5 # number of additional features
 
 n_trials: 50  # number of hyperparameters combinations optuna will try
 n_epochs: 1000 # maximum number of epoch executed during training 
-patience: 200
+patience: 100
 scheduler_factor: 0.5
 scheduler_patience: 20
 
