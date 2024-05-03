@@ -16,7 +16,7 @@ from ..hybridization_probability._models import OligoLSTM, OligoRNN
 
 class APIHybridizationProbability(APIBase):
 
-    def __init__(self, ai_filter_path) -> None:
+    def __init__(self, ai_filter_path=None) -> None:
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
     
         if ai_filter_path is None:
@@ -31,6 +31,8 @@ class APIHybridizationProbability(APIBase):
         self.model = OligoRNN(**loaded_model["hyperparameters"]["model"]) # model with best performances
         # load the pretrained weights of the model
         self.model.load_state_dict(loaded_model["weights"])
+        if torch.cuda.device_count() > 1:
+            self.model = torch.nn.DataParallel(self.model)
         self.model.to(self.device)
         self.model.eval()
         # funtion to restore the predictions to the hybridization probablity
@@ -46,9 +48,11 @@ class APIHybridizationProbability(APIBase):
         dataset = RNNDatasetInference(data)
         dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn = pack_collate_inference)
         predictions = torch.tensor([])
-        for data in dataloader:
+        for sequences, features in dataloader:
+            sequences =sequences.to(self.device)
+            features = features.to(self.device)
             with torch.no_grad():
-                predictions = torch.cat((predictions, self.model(*data)))
+                predictions = torch.cat((predictions, self.model(sequences, features)))
                 
         predictions = predictions.detach().cpu().numpy()
         predictions = self.inverse_predictions(predictions)
