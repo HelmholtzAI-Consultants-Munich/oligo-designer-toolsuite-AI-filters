@@ -8,11 +8,11 @@ model: lstm  # model architectura tha will be trained
 input_size: 8 # dimension of the input data
 features_size: 5 # number of additional features
 
-n_trials: 50  # number of hyperparameters combinations optuna will try
+n_trials: 30  # number of hyperparameters combinations optuna will try
 n_epochs: 1000 # maximum number of epoch executed during training 
-patience: 100
+patience: 20
 scheduler_factor: 0.5
-scheduler_patience: 20
+scheduler_patience: 10
 
 # tunable hyperparameters: will be sampled in the interval [min, max]
 hidden_size: [32, 128] # dimension of the hidden layers
@@ -25,5 +25,5 @@ pool: [max, sum]
 dropout: [0, 0.2]
 bidirectional: [True, False]
 
-batch_size: [32, 256]
+batch_size: [512, 2048]
 lr: [0.0001, 0.001] # learning rate sampled from a loguniform distribution

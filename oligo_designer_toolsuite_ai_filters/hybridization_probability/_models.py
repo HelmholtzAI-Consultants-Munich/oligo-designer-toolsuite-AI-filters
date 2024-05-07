@@ -181,13 +181,13 @@ class OligoRNN(nn.Module):
     def forward(self, sequences: rnn.PackedSequence, features: torch.Tensor):
         # encode the sequences
         encoded_sequences = self.encoding_MLP(sequences.data)
-        encoded_sequences = rnn.PackedSequence(data=encoded_sequences, batch_sizes=sequences.batch_sizes)
+        encoded_sequences = rnn.PackedSequence(data=encoded_sequences, batch_sizes=sequences.batch_sizes.to('cpu'))
         # run the recurrent block
         hidden_states = self.recurrent_block(encoded_sequences)[0]
         # vectorize the porcess of all the hidden states of the batch
         processed_hidden_states = self.shared_MLP(hidden_states.data) 
         # create a new PackedSeequence class and unpack it
-        processed_hidden_states = rnn.PackedSequence(data=processed_hidden_states, batch_sizes=hidden_states.batch_sizes) 
+        processed_hidden_states = rnn.PackedSequence(data=processed_hidden_states, batch_sizes=hidden_states.batch_sizes.to('cpu')) 
         unpacked_hidden_state, _ = rnn.pad_packed_sequence(processed_hidden_states, batch_first=True)
         # pool the hidden states
         if self.pool == "max":

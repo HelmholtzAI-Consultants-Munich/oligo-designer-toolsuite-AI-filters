@@ -28,10 +28,11 @@ class APIHybridizationProbability(APIBase):
             self.ai_filter_path = ai_filter_path
         loaded_model = torch.load(self.ai_filter_path, map_location=self.device)
         # load the model with the right hyperparameters
-        self.model = OligoRNN(**loaded_model["hyperparameters"]["model"]) # model with best performances
+        self.model = OligoLSTM(**loaded_model["hyperparameters"]["model"]) # model with best performances
         # load the pretrained weights of the model
         self.model.load_state_dict(loaded_model["weights"])
         if torch.cuda.device_count() > 1:
+            print("hi")
             self.model = torch.nn.DataParallel(self.model)
         self.model.to(self.device)
         self.model.eval()
@@ -48,6 +49,7 @@ class APIHybridizationProbability(APIBase):
         dataset = RNNDatasetInference(data)
         dataloader = DataLoader(dataset, batch_size=batch_size, collate_fn = pack_collate_inference)
         predictions = torch.tensor([])
+        predictions = predictions.to(self.device)
         for sequences, features in dataloader:
             sequences =sequences.to(self.device)
             features = features.to(self.device)

@@ -2,13 +2,13 @@ dir_output : data/hybridization_probablity/datasets # path to the folder where t
 oligo_length_min: 15  # minimum length of the oligos
 oligo_length_max: 100  # maximum length of the oligos
 splits_size: [0.5, 0.2, 0.3]  # train , validation and test splits
-file_genes: "data/genes/custom_10.txt"  # path to the file containing the desired genes
+file_genes: "data/genes/custom_100.txt"  # path to the file containing the desired genes
 max_mutations: 10  # maximum number of mutated nucleotides (mm)
 max_bulges_size: 3  # maximum size of insertion or deletions (mb)
-n_mutations_per_type: 5  # number of off-targets generate for each class of perturbations (nm)
-n_oligos: 5  # number of sampled oligos (no) (the final dataset size will be O(no * nm * (mm + mb)) )
+n_mutations_per_type: 1  # number of off-targets generate for each class of perturbations (nm)
+n_oligos: 50000  # number of sampled oligos (no) (the final dataset size will be O(no * nm * (mm + mb)) )
 concentration: 1e-6  # strand concentrations int the tube
-n_jobs: 5  # number of available CPUs (if None the maximum number of CPUs will be used)
+n_jobs: 32  # number of available CPUs (if None the maximum number of CPUs will be used)
 seed: 42
 nupack_cache: 8.0
 nupack_threads: 60
@@ -16,8 +16,8 @@ nupack_threads: 60
 ######### only for custom source ##########
 source: custom # required: indicate that own annotation should be used
 source_params:
-    file_annotation: data/annotations/custom_GCF_000001405.40_GRCh38.p14_genomic_chr16.gtf #output_seqfish/annotation/GCF_000001405.40_GRCh38.p14_genomic.gtf # required: GTF file with gene annotation
-    file_sequence: data/annotations/custom_GCF_000001405.40_GRCh38.p14_genomic_chr16.fna #output_seqfish/annotation/GCF_000001405.40_GRCh38.p14_genomic.fna # required: FASTA file with genome sequence
+    file_annotation: data/annotations/GCF_000001405.40_GRCh38.p14_genomic.gtf # required: GTF file with gene annotation
+    file_sequence: data/annotations/GCF_000001405.40_GRCh38.p14_genomic.fna # required: FASTA file with genome sequence
     files_source: NCBI # optional: original source of the genomic files
     species: Homo_sapiens # optional: species of provided annotation, leave empty if unknown
     taxon: vertebrate_mammalian # optional: taxon of the species we are intereste, only for source: ncbi

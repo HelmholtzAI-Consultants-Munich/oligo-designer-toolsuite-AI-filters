@@ -7,13 +7,13 @@ models_path: data/hybridization_probability/models
 model: mlp  # model architectura tha will be trained
 input_size: 285 # dimension of the input data
 
-n_trials: 50  # number of hyperparameters combinations optuna will try
+n_trials: 30  # number of hyperparameters combinations optuna will try
 n_epochs: 1000 # maximum number of epoch executed during training 
 split_lengths: [0.4, 0.2, 0.4]  # train , validation and test splits
 split_seed: 1234
-patience: 50
+patience: 20
 scheduler_factor: 0.5
-scheduler_patience: 15
+scheduler_patience: 10
 
 # tunable hyperparameters: will be sampled in the interval [min, max]
 hidden_size: [32, 128] # dimension of the hidden layers
