@@ -6,7 +6,7 @@
 #SBATCH -J mlp_training
 #SBATCH -p gpu_p
 #SBATCH --qos gpu_normal
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 #SBATCH -c 2
 #SBATCH --mem=10G
 #SBATCH -t 01-00
@@ -18,4 +18,6 @@
 
 ### User's commands, apps, parameters, etc. for e.g:
 
-python oligo_seq/pipelines/train_model.py -c config/train_MLP.yaml  
+
+CUDA_VISIBLE_DEVICES=0,1
+python oligo_designer_toolsuite_ai_filters/hybridization_probability/train_model.py -c configs/hybridization_probability/train_MLP.yaml  
