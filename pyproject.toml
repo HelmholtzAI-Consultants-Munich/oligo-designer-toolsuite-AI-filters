@@ -8,13 +8,13 @@ packages = ["oligo_designer_toolsuite_ai_filters"]
 #version = {attr = "my_package.VERSION"}
 readme = { file = "README.md" }
 
-[tool.setuptools_scm]
-write_to = "oligo_designer_toolsuite_ai_filters/_version.py"
+# [tool.setuptools_scm]
+# write_to = "oligo_designer_toolsuite_ai_filters/_version.py"
 
 [project]
 name = "oligo-designer-toolsuite-ai-filters"
-dynamic = ["version"]
-#version = "1.0.2"
+# dynamic = ["version"]
+version = "0.0.0"
 authors = [
   { name = "Francesco Campi", email = "francesco.campi@helmholtz-munich.de" },
   { name = "Lisa Barros de Andrade e Sousa", email = "lisa.barros.andrade.sousa@gmail.com" },

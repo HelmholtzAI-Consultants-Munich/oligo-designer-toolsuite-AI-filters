@@ -1,1 +1,1 @@
-include data/data/pretrained_models/*
+graft data/pretrained_models
