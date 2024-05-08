@@ -5,10 +5,9 @@ requires = ["setuptools>=61.0", "setuptools_scm[toml]>=6.2"]
 packages = ["oligo_designer_toolsuite_ai_filters"]
 
 [tool.setuptools.dynamic]
-#version = {attr = "my_package.VERSION"}
 readme = { file = "README.md" }
 
-# [tool.setuptools_scm]
+[tool.setuptools_scm]
 write_to = "oligo_designer_toolsuite_ai_filters/_version.py"
 
 [project]
