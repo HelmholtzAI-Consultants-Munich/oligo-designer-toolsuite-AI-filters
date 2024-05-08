@@ -14,7 +14,7 @@ readme = { file = "README.md" }
 [project]
 name = "oligo-designer-toolsuite-ai-filters"
 # dynamic = ["version"]
-version = "0.0.0"
+version = "0.0.1"
 authors = [
   { name = "Francesco Campi", email = "francesco.campi@helmholtz-munich.de" },
   { name = "Lisa Barros de Andrade e Sousa", email = "lisa.barros.andrade.sousa@gmail.com" },
