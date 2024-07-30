@@ -22,8 +22,8 @@ class APIHybridizationProbability(APIBase):
         if ai_filter_path is None:
             # if none the predefined models are used
             # get repository location
-            repo_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-            self.ai_filter_path = os.path.join(repo_path, "pretrained_models", "hybridization_probability.pt")
+            package_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            self.ai_filter_path = os.path.join(package_path, "pretrained_models", "hybridization_probability.pt")
         else:
             self.ai_filter_path = ai_filter_path
         loaded_model = torch.load(self.ai_filter_path, map_location=self.device)

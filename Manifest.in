@@ -1,1 +1,1 @@
-include data/data/pretrained_models/*
+include oligo_designer_toolsuite_ai_filters/pretrained_models/*

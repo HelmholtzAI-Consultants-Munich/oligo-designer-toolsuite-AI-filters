@@ -5,3 +5,4 @@ __pycache__
 log_*
 *.err
 *.out
+dist

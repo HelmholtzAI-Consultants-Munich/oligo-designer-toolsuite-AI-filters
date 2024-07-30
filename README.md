@@ -20,6 +20,8 @@ strands are initially set at the same concentration $C_{in}$ and we define the d
 
 $log( \dfrac{C_{oligo + off-t}}{C_{oligo + off-t}  + C_{oligo + on-t} })$. 
     
+add how to install nupack
+
 ## Pretrained models
 
 The best performing architecture for the different taks that are available as pretrained models are the following:

@@ -13,8 +13,7 @@ write_to = "oligo_designer_toolsuite_ai_filters/_version.py"
 
 [project]
 name = "oligo-designer-toolsuite-ai-filters"
-dynamic = ["version"]
-#version = "1.0.2"
+version = "0.0.3"
 authors = [
   { name = "Francesco Campi", email = "francesco.campi@helmholtz-munich.de" },
   { name = "Lisa Barros de Andrade e Sousa", email = "lisa.barros.andrade.sousa@gmail.com" },
@@ -39,15 +38,12 @@ classifiers = [
 ]
 dependencies = [
     "torch",
-    "oligo-designer-toolsuite",
     "seaborn",
+    "pandas",
+    "biopython",
 ]
-
-
-[project.scripts]
 
 
 
 [project.urls]
-documentation = "https://oligo-designer-toolsuite.readthedocs.io/"
-repository = "https://github.com/HelmholtzAI-Consultants-Munich/oligo-designer-toolsuite"
+repository = "https://github.com/HelmholtzAI-Consultants-Munich/oligo-designer-toolsuite-AI-filters"
