@@ -95,7 +95,7 @@ class APIHybridizationProbability(APIBase):
         dataset["off_target_length"] = [len(reference) for reference in references]
         dataset["off_target_GC_content"] = [gc_fraction(reference) for reference in references]
         dataset["number_mismatches"] = [
-            sum(query != reference for query, reference in zip(query, reference))
+            sum(q != r for q, r in zip(query, reference))
             for query, reference in zip(gapped_queries, gapped_references)
         ]
         return dataset

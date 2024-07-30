@@ -8,13 +8,12 @@ import time
 from typing import Tuple
 import logging
 from datetime import datetime
-import multiprocess
 import iteration_utilities
 
-from oligo_designer_toolsuite.sequence_generator import NcbiGenomicRegionGenerator, EnsemblGenomicRegionGenerator, CustomGenomicRegionGenerator
+from oligo_designer_toolsuite.sequence_generator import OligoSequenceGenerator
 from oligo_designer_toolsuite.database import OligoDatabase
 from oligo_designer_toolsuite.oligo_property_filter import PropertyFilter, HardMaskedSequenceFilter
-from oligo_designer_toolsuite.pipelines._base_oligo_designer import BaseOligoDesigner
+from oligo_designer_toolsuite.pipelines import GenomicRegionGenerator
 from Bio.Seq import MutableSeq, Seq
 from Bio.SeqUtils import gc_fraction
 from Bio.SeqUtils import MeltingTemp as mt
@@ -23,6 +22,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import nupack
 from math import log
+import joblib
 
 
 
@@ -167,7 +167,7 @@ def main():
     plots_dir = os.path.join(config["dir_output"], f"{dataset_name}_plots")
     os.makedirs(plots_dir, exist_ok=True)
     # nupack run
-    nupack.config.threads = config["nupack_threads"] # use all cores
+    nupack.config.threads = config["n_jobs"] # use all cores
     nupack.config.cache = config["nupack_cache"]
     
 
@@ -188,20 +188,39 @@ def main():
     # generate the oligo sequences #
     ################################
 
-    oligo_designer = BaseOligoDesigner(dir_output = "output_odt", log_name="database_generation")
-    oligo_designer.load_annotations(source=config["source"], source_params=config["source_params"])
+    genomic_region_genereator = GenomicRegionGenerator(dir_output = "output_odt")
+    region_generator = genomic_region_genereator.load_annotations(source=config["source"], source_params=config["source_params"])
+    files_fasta = genomic_region_genereator.generate_genomic_regions(
+        region_generator = region_generator,
+        genomic_regions  = config["genomic_regions"],
+        block_size = 0,
+    )
 
     with open(config["file_genes"]) as handle:
         lines = handle.readlines()
         genes = [line.rstrip() for line in lines]
 
-    oligo_database, _ = oligo_designer.create_oligo_database(
-        regions=genes,
-        genomic_regions=config["genomic_regions"],
-        oligo_length_min=config["oligo_length_min"],
-        oligo_length_max=config["oligo_length_max"],
-        min_oligos_per_region=0,
+    ##### creating the oligo sequences #####
+    oligo_sequences = OligoSequenceGenerator(dir_output="output_odt")
+    oligo_fasta_file = oligo_sequences.create_sequences_sliding_window(
+        files_fasta_in=files_fasta,
+        length_interval_sequences=(config["oligo_length_min"], config["oligo_length_max"]),
+        region_ids=genes,
         n_jobs=config["n_jobs"],
+    )
+
+    ##### creating the oligo database #####
+    oligo_database = OligoDatabase(
+        min_oligos_per_region=0,
+        write_regions_with_insufficient_oligos=True,
+        lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
+        database_name="oligo_database",
+        dir_output="output_odt",
+    )
+    oligo_database.load_database_from_fasta(
+        files_fasta=oligo_fasta_file,
+        sequence_type="target",
+        region_ids=genes,
     )
     
     logging.info("Oligo seqeunces generated.")
@@ -250,7 +269,7 @@ def main():
         oligos_test.remove(s)
     # now sample the remaining oligos
     if len(oligos_train) < sample_train or len(oligos_validation) < sample_validation or len(oligos_test) < sample_test:
-       raise Warning("Fewr oligos left to sample.")
+       logging.warning(f"Fewer oligos left to sample.")
     oligos_train = random.sample(population=oligos_train, k=min(len(oligos_train), sample_train))
     oligos_validation = random.sample(population=oligos_validation, k=min(len(oligos_validation), sample_validation))
     oligos_test = random.sample(population=oligos_test, k=min(len(oligos_test), sample_test))
@@ -281,32 +300,33 @@ def main():
     # generate artificial off-targets and compute duplexing scores #
     ################################################################
     
+    start_2 = time.time()
     # train
-    # train_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
-    #     joblib.delayed(generate_off_targets)(
-    #         oligo.upper(), config
-    #     )
-    #     for oligo in oligos_train
-    # )
-    train_alignments = [generate_off_targets(oligo.upper(), config) for oligo in oligos_train]
+    train_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
+        joblib.delayed(generate_off_targets)(
+            oligo.upper(), config
+        )
+        for oligo in oligos_train
+    )
+    # train_alignments = [generate_off_targets(oligo.upper(), config) for oligo in oligos_train]
     train_alignments = [alignment for oligo_alignments in train_alignments for alignment in oligo_alignments] # flatten the returned structure
     # validation
-    # validation_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
-    #     joblib.delayed(generate_off_targets)(
-    #         oligo.upper(), config
-    #         )
-    #     for oligo in oligos_validation
-    # )
-    validation_alignments = [generate_off_targets(oligo.upper(), config) for oligo in oligos_validation]
+    validation_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
+        joblib.delayed(generate_off_targets)(
+            oligo.upper(), config
+            )
+        for oligo in oligos_validation
+    )
+    # validation_alignments = [generate_off_targets(oligo.upper(), config) for oligo in oligos_validation]
     validation_alignments = [alignment for oligo_alignments in validation_alignments for alignment in oligo_alignments] # flatten the returned structure
-    # # test
-    # test_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
-    #     joblib.delayed(generate_off_targets)(
-    #         oligo.upper(), config
-    #         )
-    #     for oligo in oligos_test
-    # )
-    test_alignments = [generate_off_targets(oligo.upper(), config) for oligo in oligos_test]
+    # test
+    test_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
+        joblib.delayed(generate_off_targets)(
+            oligo.upper(), config
+            )
+        for oligo in oligos_test
+    )
+    # test_alignments = [generate_off_targets(oligo.upper(), config) for oligo in oligos_test]
     test_alignments = [alignment for oligo_alignments in test_alignments for alignment in oligo_alignments] # flatten the returned structure
     logging.info("Generated artificial off-targets.")
     ##################
@@ -334,10 +354,9 @@ def main():
     plt.title("Duplexing scores distributions")
     plt.savefig(os.path.join(plots_dir,"Duplexing_scores_distribution.pdf"))
     
-    logging.info(f"Computational time: {time.time() - start}")
+    logging.info(f"Computational time: {time.time() - start} (off-targets generation: {time.time() - start_2})")
+    del oligo_database
     shutil.rmtree("output_odt") #remove oligo designer toolsuite output
-    plt.show()
-
 
 if __name__ == "__main__":
     main()

@@ -2,11 +2,9 @@ dir_output : data/hybridization_probability/datasets # path to the folder where 
 oligo_length_min: 15  # minimum length of the oligos
 oligo_length_max: 100  # maximum length of the oligos
 splits_size: [0.5, 0.2, 0.3]  # train , validation and test splits
-file_genes: "data/genes/custom_3.txt"  # path to the file containing the desired genes
-max_mutations: 10  # maximum number of mutated nucleotides (mm)
-max_bulges_size: 3  # maximum size of insertion or deletions (mb)
-n_mutations_per_type: 1  # number of off-targets generate for each class of perturbations (nm)
-n_oligos: 500  # number of sampled oligos (no) (the final dataset size will be O(no * nm * (mm + mb)) )
+file_genes: data/genes/custom_3.txt  # path to the file containing the desired genes
+dataset_size: 6500 # total number of entries of the dataset
+oligos_per_region: 1000 # maximun number of oligo per region for which teh off targets are searched
 concentration: 1e-6  # strand concentrations int the tube
 n_jobs: 5  # number of available CPUs (if None the maximum number of CPUs will be used)
 seed: 42
@@ -28,3 +26,25 @@ genomic_regions:
   exon_exon_junction: false
   cds: false
   intron: false
+
+######### alignment method ##########
+alignment_method: blastn
+search_parameters:
+  perc_identity: 80
+  strand: "minus" # this parameter is fixed, if reference is whole genome, consider using "both"
+  word_size: 10
+  outfmt: 6 qseqid sseqid length qstart qend qlen qseq sstart send sseq sstrand
+hit_parameters:
+  coverage: 50 # could be turned into min_alignment_length
+names_search_output:
+  - query
+  - reference
+  - alignment_length
+  - query_start
+  - query_end
+  - query_length
+  - query_sequence
+  - reference_start
+  - reference_end
+  - reference_sequence
+  - reference_strand
