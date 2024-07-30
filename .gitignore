@@ -1,1 +1,7 @@
 *.pyc
+wandb
+*.egg-info
+__pycache__
+log_*
+*.err
+*.out
