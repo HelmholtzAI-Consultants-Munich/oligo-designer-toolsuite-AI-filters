@@ -240,7 +240,7 @@ def main():
     # generate the oligo sequences #
     ################################
 
-    genomic_region_genereator = GenomicRegionGenerator(dir_output = "output_odt")
+    genomic_region_genereator = GenomicRegionGenerator(dir_output = "output_odt_real")
     region_generator = genomic_region_genereator.load_annotations(source=config["source"], source_params=config["source_params"])
     files_fasta = genomic_region_genereator.generate_genomic_regions(
         region_generator = region_generator,
@@ -254,7 +254,7 @@ def main():
     genes_train, genes_validation, genes_test = split_list(genes, config["splits_size"])
 
     ##### creating the oligo sequences #####
-    oligo_sequences = OligoSequenceGenerator(dir_output="output_odt")
+    oligo_sequences = OligoSequenceGenerator(dir_output="output_odt_real")
     oligo_fasta_file = oligo_sequences.create_sequences_sliding_window(
         files_fasta_in=files_fasta,
         length_interval_sequences=(config["oligo_length_min"], config["oligo_length_max"]),
@@ -269,7 +269,7 @@ def main():
         write_regions_with_insufficient_oligos=True,
         lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
         database_name="oligo_database_train",
-        dir_output="output_odt",
+        dir_output="output_odt_real",
     )
     oligo_database_train.load_database_from_fasta(
         files_fasta=oligo_fasta_file,
@@ -282,7 +282,7 @@ def main():
         write_regions_with_insufficient_oligos=True,
         lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
         database_name="oligo_database_validation",
-        dir_output="output_odt",
+        dir_output="output_odt_real",
     )
     oligo_database_validation.load_database_from_fasta(
         files_fasta=oligo_fasta_file,
@@ -295,7 +295,7 @@ def main():
         write_regions_with_insufficient_oligos=True,
         lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
         database_name="oligo_database_test",
-        dir_output="output_odt",
+        dir_output="output_odt_real",
     )
     oligo_database_test.load_database_from_fasta(
         files_fasta=oligo_fasta_file,
@@ -303,7 +303,7 @@ def main():
         region_ids=genes_test,
     )
 
-    reference_database = ReferenceDatabase(dir_output="output_odt")
+    reference_database = ReferenceDatabase(dir_output="output_odt_real")
     reference_database.load_database_from_fasta(files_fasta = files_fasta)
     file_reference = reference_database.write_database_to_fasta(
             filename=f"db_reference"
@@ -346,13 +346,13 @@ def main():
             search_parameters = config["search_parameters"],
             hit_parameters = config["hit_parameters"],
             names_search_output = config["names_search_output"],
-            dir_output="output_odt"
+            dir_output="output_odt_real"
         )
     elif config["alignment_method"] == "bowtie":
         alignment_method = BowtieFilter(
             search_parameters = config["search_parameters"],
             hit_parameters = config["hit_parameters"],
-            dir_output="output_odt"
+            dir_output="output_odt_real"
         )
     else:
         raise ValueError("Unknown alignment method.")
@@ -429,7 +429,7 @@ def main():
     del oligo_database_validation
     del oligo_database_test
 
-    shutil.rmtree("output_odt") #remove oligo designer toolsuite output
+    shutil.rmtree("output_odt_real") #remove oligo designer toolsuite output
 
 if __name__ == "__main__":
     main()
