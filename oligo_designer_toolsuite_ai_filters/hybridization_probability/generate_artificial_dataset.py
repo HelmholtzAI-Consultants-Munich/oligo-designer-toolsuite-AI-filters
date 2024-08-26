@@ -188,7 +188,7 @@ def main():
     # generate the oligo sequences #
     ################################
 
-    genomic_region_genereator = GenomicRegionGenerator(dir_output = "output_odt")
+    genomic_region_genereator = GenomicRegionGenerator(dir_output = "output_odt_artificial")
     region_generator = genomic_region_genereator.load_annotations(source=config["source"], source_params=config["source_params"])
     files_fasta = genomic_region_genereator.generate_genomic_regions(
         region_generator = region_generator,
@@ -201,7 +201,7 @@ def main():
         genes = [line.rstrip() for line in lines]
 
     ##### creating the oligo sequences #####
-    oligo_sequences = OligoSequenceGenerator(dir_output="output_odt")
+    oligo_sequences = OligoSequenceGenerator(dir_output="output_odt_artificial")
     oligo_fasta_file = oligo_sequences.create_sequences_sliding_window(
         files_fasta_in=files_fasta,
         length_interval_sequences=(config["oligo_length_min"], config["oligo_length_max"]),
@@ -215,7 +215,7 @@ def main():
         write_regions_with_insufficient_oligos=True,
         lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
         database_name="oligo_database",
-        dir_output="output_odt",
+        dir_output="output_odt_artificial",
     )
     oligo_database.load_database_from_fasta(
         files_fasta=oligo_fasta_file,
@@ -356,7 +356,7 @@ def main():
     
     logging.info(f"Computational time: {time.time() - start} (off-targets generation: {time.time() - start_2})")
     del oligo_database
-    shutil.rmtree("output_odt") #remove oligo designer toolsuite output
+    shutil.rmtree("output_odt_artificial") #remove oligo designer toolsuite output
 
 if __name__ == "__main__":
     main()
