@@ -104,7 +104,7 @@ def generate_off_targets_region(
 
     # add the gaps
     references = alignment_method._get_references(table_hits, file_reference, region_id)
-    queries = alignment_method._get_queries('oligo', table_hits, oligo_database, region_id)
+    queries = alignment_method._get_queries(oligo_database, table_hits,'oligo', region_id)
     # align the references and queries by adding gaps
     gapped_queries, gapped_references = alignment_method._add_alignment_gaps(
         table_hits=table_hits, queries=queries, references=references
@@ -179,7 +179,7 @@ def sample_oligos(oligo_database: OligoDatabase, oligos_per_region: int):
 
 
 def main():
-    """Generate an artificial dataset containing oligos and some hand-crafted mutations with the 
+    """Generate an real dataset containing oligos and some hand-crafted mutations with the 
     relative mutations scores. The oligos are extracted form a given list of genes and uniformly sampled to match 
     the desidred dataset size. These oligos are then mutated by applying 0 to max_mutaions base-pairs mutations to generate potential off-targets.
     (REMARK: for each nr. of mutations we create an off-target region startic from each nucleotide of the oligo sequence
@@ -203,11 +203,11 @@ def main():
 
     start = time.time()
     parser = argparse.ArgumentParser(
-        prog="Artificial Dataset",
-        usage="generate_artificial_dataset [options]",
+        prog="Real Dataset",
+        usage="generate_real_dataset [options]",
         description=main.__doc__,
     )
-    parser.add_argument("-c", "--config", help="path to the configuration file", default="config/generate_artificial_dataset.yaml")
+    parser.add_argument("-c", "--config", help="path to the configuration file", default="config/generate_real_dataset_blastn.yaml")
     args = parser.parse_args()
     with open(args.config, "r") as handle:
         config = yaml.safe_load(handle)
@@ -229,7 +229,7 @@ def main():
 
     timestamp = datetime.now()
     file_logger = f"log_{dataset_name}_{timestamp.year}-{timestamp.month}-{timestamp.day}-{timestamp.hour}-{timestamp.minute}.txt"
-    logging.getLogger("artificial_dataset_generation")
+    logging.getLogger("real_dataset_generation")
     logging.basicConfig(
         format="%(asctime)s [%(levelname)s] %(message)s",
         level=logging.INFO,
@@ -275,6 +275,7 @@ def main():
         files_fasta=oligo_fasta_file,
         sequence_type="target",
         region_ids=genes_train,
+        database_overwrite = True,
     )
 
     oligo_database_validation = OligoDatabase(
@@ -288,6 +289,7 @@ def main():
         files_fasta=oligo_fasta_file,
         sequence_type="target",
         region_ids=genes_validation,
+        database_overwrite = True,
     )
 
     oligo_database_test = OligoDatabase(
@@ -301,12 +303,13 @@ def main():
         files_fasta=oligo_fasta_file,
         sequence_type="target",
         region_ids=genes_test,
+        database_overwrite = True,
     )
 
     reference_database = ReferenceDatabase(dir_output="output_odt_real")
-    reference_database.load_database_from_fasta(files_fasta = files_fasta)
+    reference_database.load_database_from_fasta(files_fasta = files_fasta, database_overwrite = True,)
     file_reference = reference_database.write_database_to_fasta(
-            filename=f"db_reference"
+            filename=f"db_reference",
         )
 
     # Property filtering
@@ -337,7 +340,7 @@ def main():
 
 
     ################################################################
-    # generate artificial off-targets and compute duplexing scores #
+    # generate real off-targets and compute duplexing scores #
     ################################################################
     
     start_2 = time.time()
@@ -393,7 +396,7 @@ def main():
         file_reference=file_reference
     )
 
-    logging.info("Generated artificial off-targets.")
+    logging.info("Generated real off-targets.")
 
     ##################
     # write dataset #

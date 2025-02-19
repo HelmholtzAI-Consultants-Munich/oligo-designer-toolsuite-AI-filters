@@ -2,11 +2,11 @@ dir_output : data/hybridization_probability/datasets # path to the folder where 
 oligo_length_min: 15  # minimum length of the oligos
 oligo_length_max: 100  # maximum length of the oligos
 splits_size: [0.5, 0.2, 0.3]  # train , validation and test splits
-file_genes: "data/genes/custom_3.txt"  # path to the file containing the desired genes
-dataset_size: 6500 # total number of entries of the dataset
-oligos_per_region: 1000 # maximun number of oligo per region for which teh off targets are searched
+file_genes: "data/genes/ncbi_500.txt"  # path to the file containing the desired genes
+dataset_size: 1000000 # total number of entries of the dataset
+oligos_per_region: 5000 # maximun number of oligo per region for which teh off targets are searched
 concentration: 1e-6  # strand concentrations int the tube
-n_jobs: 5  # number of available CPUs (if None the maximum number of CPUs will be used)
+n_jobs: 32  # number of available CPUs (if None the maximum number of CPUs will be used)
 seed: 42
 nupack_cache: 8.0
 
@@ -16,13 +16,13 @@ source_params:
     file_annotation: data/annotations/GCF_000001405.40_GRCh38.p14_genomic.gtf # required: GTF file with gene annotation
     file_sequence: data/annotations/GCF_000001405.40_GRCh38.p14_genomic.fna # required: FASTA file with genome sequence
     files_source: NCBI # optional: original source of the genomic files
-    species: Homo_sapiens # optional: species of provided annotation, leave empty if unknown
+    species: Homo_sapiens # optional: species of provid ed annotation, leave empty if unknown
     taxon: vertebrate_mammalian # optional: taxon of the species we are intereste, only for source: ncbi
     annotation_release: 110 # optional: release number of provided annotation, leave empty if unknown
     genome_assembly: GRCh38  # optional: genome assembly of provided annotation, leave empty if unknown
 genomic_regions:
-  gene: false
-  exon: true
+  gene: true
+  exon: false
   exon_exon_junction: false
   cds: false
   intron: false
