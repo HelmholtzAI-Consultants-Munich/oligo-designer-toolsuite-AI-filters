@@ -12,7 +12,7 @@ import iteration_utilities
 
 from oligo_designer_toolsuite.sequence_generator import OligoSequenceGenerator
 from oligo_designer_toolsuite.database import OligoDatabase
-from oligo_designer_toolsuite.oligo_property_filter import PropertyFilter, HardMaskedSequenceFilter
+from oligo_designer_toolsuite.oligo_property_filter import PropertyFilter, HardMaskedSequenceFilter, SoftMaskedSequenceFilter
 from oligo_designer_toolsuite.pipelines import GenomicRegionGenerator
 from Bio.Seq import MutableSeq, Seq
 from Bio.SeqUtils import gc_fraction
@@ -205,7 +205,8 @@ def main():
     args = parser.parse_args()
     with open(args.config, "r") as handle:
         config = yaml.safe_load(handle)
-    size = config["oligos_per_region"]*config["n_mutations_per_type"]*(config["max_mutations"] + config["max_bulges_size"])*len(genes)
+    n_genes = sum(1 for _ in open(config["file_genes"]))
+    size = config["oligos_per_region"]*config["n_mutations_per_type"]*(config["max_mutations"] + config["max_bulges_size"])*n_genes
     dataset_name = f"artificial_dataset_{config['oligo_length_min']}_{config['oligo_length_max']}_{size}"
     # set random seed for reproducibility
     random.seed(config["seed"])
@@ -289,7 +290,7 @@ def main():
     # train
     train_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
         joblib.delayed(generate_off_targets)(
-            oligo.upper(), config
+            oligo["oligo"].upper(), config
         )
         for database_region in oligo_database_train.database.values()
         for oligo in database_region.values()
@@ -298,7 +299,7 @@ def main():
     # validation
     validation_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
         joblib.delayed(generate_off_targets)(
-            oligo.upper(), config
+            oligo["oligo"].upper(), config
             )
         for database_region in oligo_database_validation.database.values()
         for oligo in database_region.values()
@@ -307,7 +308,7 @@ def main():
     # test
     test_alignments = joblib.Parallel(n_jobs=config["n_jobs"])(
         joblib.delayed(generate_off_targets)(
-            oligo.upper(), config
+            oligo["oligo"].upper(), config
             )
         for database_region in oligo_database_test.database.values()
         for oligo in database_region.values()
@@ -331,8 +332,7 @@ def main():
     logging.info(f"Dataset created and stored at: \n\t - {file_train},\n\t - {file_validation}, \n\t - {file_test}.")
 
     logging.info(f"Computational time: {time.time() - start} (off-targets generation: {time.time() - start_2})")
-    del oligo_database
-    shutil.rmtree("output_odt_artificial") #remove oligo designer toolsuite output
+    shutil.rmtree(dir_output, ignore_errors=True) #remove oligo designer toolsuite output
 
 if __name__ == "__main__":
     main()
