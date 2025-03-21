@@ -2,9 +2,9 @@ dir_output : data/hybridization_probability/datasets # path to the folder where 
 oligo_length_min: 15  # minimum length of the oligos
 oligo_length_max: 100  # maximum length of the oligos
 splits_size: [0.5, 0.2, 0.3]  # train , validation and test splits
-file_genes: "data/genes/ncbi_500.txt"  # path to the file containing the desired genes
+file_genes: data/genes/custom_100.txt  # path to the file containing the desired genes
 dataset_size: 1000000 # total number of entries of the dataset
-oligos_per_region: 5000 # maximun number of oligo per region for which teh off targets are searched
+oligos_per_region: 1000 # maximun number of oligo per region for which teh off targets are searched
 concentration: 1e-6  # strand concentrations int the tube
 n_jobs: 32  # number of available CPUs (if None the maximum number of CPUs will be used)
 seed: 42

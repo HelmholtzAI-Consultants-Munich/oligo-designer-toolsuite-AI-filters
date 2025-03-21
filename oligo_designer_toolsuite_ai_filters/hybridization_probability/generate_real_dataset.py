@@ -28,49 +28,11 @@ import nupack
 from math import log
 import joblib
 
+from .generate_artificial_dataset import split_list, reverse_complement, compute_free_energy, generate_datasamples
 
 
 base_pair = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'a':'T', 't':'A', 'c':'G', 'g':'C'}
 
-def split_list(l: list, spilts_perc: list[float]):
-    assert sum(spilts_perc) == 1, "The splits percentages must su up to 1"
-    n = len(l)
-    n_splits = len(spilts_perc)
-    splits = [0]
-    for i in range(n_splits-1):
-        splits.append(round(splits[-1] + round(spilts_perc[i]*n)))
-    splits.append(n)
-    # randomly shuffle the list
-    random.shuffle(l)
-    # genrate the splits
-    final_splits = []
-    for i in range(n_splits):
-        final_splits.append(l[splits[i]:splits[i+1]])
-    return final_splits
-
-
-def reverse_complement(strand: str) -> str:
-    reverse_strand = []
-    strand = list(strand)
-    strand.reverse()
-    for i in strand:
-        if i == "-":
-            continue
-        reverse_strand.append(base_pair[i])
-    return "".join(reverse_strand)
-
-
-def duplexing_log_scores(oligo: str, off_target: str, model: nupack.Model, concentration: float) -> float:
-     # oligo must be reversed and complemented
-    oligo_strand = nupack.Strand(oligo, name="oligo")
-    on_target_strand = nupack.Strand(reverse_complement(oligo), name="on_target")
-    off_target_strand = nupack.Strand(reverse_complement(off_target), name="off_target")
-    t = nupack.Tube(strands={oligo_strand: concentration, on_target_strand: concentration, off_target_strand: concentration}, name='t', complexes=nupack.SetSpec(max_size=2))
-    tube_results = nupack.tube_analysis(tubes=[t], model=model)
-    tube_concentrations = tube_results[t].complex_concentrations
-    # calculate the percentage of sequences that bind to the off target region
-    off_target_perc = tube_concentrations[nupack.Complex(strands=[oligo_strand,off_target_strand])] / (tube_concentrations[nupack.Complex(strands=[oligo_strand,off_target_strand])] + tube_concentrations[nupack.Complex(strands=[oligo_strand,on_target_strand])])
-    return log(off_target_perc, 10) # log normalization
 
 def generate_off_targets_region(
         oligo_database: OligoDatabase, 
@@ -177,6 +139,38 @@ def sample_oligos(oligo_database: OligoDatabase, oligos_per_region: int):
     return oligo_database
 
 
+def generate_oligos(config: dict, dir_output: str, regions: list, oligo_fasta_file: str):
+    """Generate the oligo sequences.
+    """
+
+    ##### creating the oligo database #####
+    # one database for train, test and validation is created
+    oligo_database = OligoDatabase(
+        min_oligos_per_region=0,
+        write_regions_with_insufficient_oligos=True,
+        lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
+        database_name=f"oligo_database_{str(time.time())}",
+        dir_output=dir_output,
+    )
+    oligo_database.load_database_from_fasta(
+        files_fasta=oligo_fasta_file,
+        sequence_type="target",
+        region_ids=regions,
+        database_overwrite = True,
+    )
+
+    # Property filtering
+    masked_seqeunces = HardMaskedSequenceFilter()
+    soft_masked_seqeunces = SoftMaskedSequenceFilter()
+    property_filter = PropertyFilter(filters=[masked_seqeunces, soft_masked_seqeunces])
+    oligo_database = property_filter.apply(oligo_database=oligo_database, n_jobs=config["n_jobs"], sequence_type="oligo")
+    
+    return oligo_database
+    
+    
+
+
+
 
 def main():
     """Generate an real dataset containing oligos and some hand-crafted mutations with the 
@@ -240,7 +234,9 @@ def main():
     # generate the oligo sequences #
     ################################
 
-    genomic_region_genereator = GenomicRegionGenerator(dir_output = "output_odt_real")
+    dir_output = "output_odt_real_" + str(time.time())
+
+    genomic_region_genereator = GenomicRegionGenerator(dir_output = dir_output)
     region_generator = genomic_region_genereator.load_annotations(source=config["source"], source_params=config["source_params"])
     files_fasta = genomic_region_genereator.generate_genomic_regions(
         region_generator = region_generator,
@@ -254,7 +250,7 @@ def main():
     genes_train, genes_validation, genes_test = split_list(genes, config["splits_size"])
 
     ##### creating the oligo sequences #####
-    oligo_sequences = OligoSequenceGenerator(dir_output="output_odt_real")
+    oligo_sequences = OligoSequenceGenerator(dir_output=dir_output)
     oligo_fasta_file = oligo_sequences.create_sequences_sliding_window(
         files_fasta_in=files_fasta,
         length_interval_sequences=(config["oligo_length_min"], config["oligo_length_max"]),
@@ -262,64 +258,15 @@ def main():
         n_jobs=config["n_jobs"],
     )
 
-    ##### creating the oligo database #####
-    # one database for train, test and validation is created
-    oligo_database_train = OligoDatabase(
-        min_oligos_per_region=0,
-        write_regions_with_insufficient_oligos=True,
-        lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
-        database_name="oligo_database_train",
-        dir_output="output_odt_real",
-    )
-    oligo_database_train.load_database_from_fasta(
-        files_fasta=oligo_fasta_file,
-        sequence_type="target",
-        region_ids=genes_train,
-        database_overwrite = True,
-    )
+    oligo_database_train = generate_oligos(config, dir_output, genes_train, oligo_fasta_file)
+    oligo_database_validation = generate_oligos(config, dir_output, genes_validation, oligo_fasta_file)
+    oligo_database_test = generate_oligos(config, dir_output, genes_test, oligo_fasta_file)
 
-    oligo_database_validation = OligoDatabase(
-        min_oligos_per_region=0,
-        write_regions_with_insufficient_oligos=True,
-        lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
-        database_name="oligo_database_validation",
-        dir_output="output_odt_real",
-    )
-    oligo_database_validation.load_database_from_fasta(
-        files_fasta=oligo_fasta_file,
-        sequence_type="target",
-        region_ids=genes_validation,
-        database_overwrite = True,
-    )
-
-    oligo_database_test = OligoDatabase(
-        min_oligos_per_region=0,
-        write_regions_with_insufficient_oligos=True,
-        lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
-        database_name="oligo_database_test",
-        dir_output="output_odt_real",
-    )
-    oligo_database_test.load_database_from_fasta(
-        files_fasta=oligo_fasta_file,
-        sequence_type="target",
-        region_ids=genes_test,
-        database_overwrite = True,
-    )
-
-    reference_database = ReferenceDatabase(dir_output="output_odt_real")
+    reference_database = ReferenceDatabase(dir_output=dir_output)
     reference_database.load_database_from_fasta(files_fasta = files_fasta, database_overwrite = True,)
     file_reference = reference_database.write_database_to_fasta(
             filename=f"db_reference",
         )
-
-    # Property filtering
-    masked_seqeunces = HardMaskedSequenceFilter()
-    soft_masked_seqeunces = SoftMaskedSequenceFilter()
-    property_filter = PropertyFilter(filters=[masked_seqeunces, soft_masked_seqeunces])
-    oligo_database_train = property_filter.apply(oligo_database=oligo_database_train, n_jobs=config["n_jobs"], sequence_type="oligo")
-    oligo_database_validation = property_filter.apply(oligo_database=oligo_database_validation, n_jobs=config["n_jobs"], sequence_type="oligo")
-    oligo_database_test = property_filter.apply(oligo_database=oligo_database_test, n_jobs=config["n_jobs"], sequence_type="oligo")
-    logging.info("Oligo sequences filtered (property).")
 
     # log database information
     logging.info("Oligo seqeunces generated.")
@@ -349,13 +296,13 @@ def main():
             search_parameters = config["search_parameters"],
             hit_parameters = config["hit_parameters"],
             names_search_output = config["names_search_output"],
-            dir_output="output_odt_real"
+            dir_output=dir_output
         )
     elif config["alignment_method"] == "bowtie":
         alignment_method = BowtieFilter(
             search_parameters = config["search_parameters"],
             hit_parameters = config["hit_parameters"],
-            dir_output="output_odt_real"
+            dir_output=dir_output
         )
     else:
         raise ValueError("Unknown alignment method.")
@@ -432,7 +379,7 @@ def main():
     del oligo_database_validation
     del oligo_database_test
 
-    shutil.rmtree("output_odt_real") #remove oligo designer toolsuite output
+    shutil.rmtree(dir_output) #remove oligo designer toolsuite output
 
 if __name__ == "__main__":
     main()
