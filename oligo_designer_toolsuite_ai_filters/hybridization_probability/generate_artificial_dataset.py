@@ -84,13 +84,21 @@ def generate_datasamples(oligo: str, target: str, gap_oligo: str, gap_off_target
     return data_samples
 
 def sample_temperatures(n: int = 1) -> List[float]:
-    return [37 for _ in range(n)]
-
+    temperatures = []
+    for _ in range(n):
+        p = random.random()
+        if p <= 0.85:
+            temperatures.append(random.uniform(30, 80))
+        elif p <= 0.95:
+            temperatures.append(random.uniform(80,100))
+        else:
+            temperatures.append(random.uniform(20, 30))
+    return temperatures
 
 def generate_off_targets(sequence: Seq, config) -> list[Tuple[str,str, int, float]]:
     # single point mutations
     data = []
-    data.extend(generate_datasamples(sequence, sequence, sequence, sequence, sample_temperatures(), 0))
+    data.extend(generate_datasamples(sequence, sequence, sequence, sequence, sample_temperatures(6), 0))
     for i in range(1, config["max_mutations"]+1): # nr of mutations
         for _ in range(1, config["n_mutations_per_type"]+1): # nr of mutations for mutation class
             # mutate i nt
@@ -103,7 +111,7 @@ def generate_off_targets(sequence: Seq, config) -> list[Tuple[str,str, int, floa
                 off_target.insert(k, new_nt)
                 unchanged_nts.remove(k)
             # evaluate all the free energies and append them (make a funciton for this)
-            data.extend(generate_datasamples(sequence, off_target, sequence, off_target, sample_temperatures(), i))
+            data.extend(generate_datasamples(sequence, off_target, sequence, off_target, sample_temperatures(2), i))
     # bulges (insertions and deletions)
     for i in range(1, config["max_bulges_size"]+1): # nr of mutations
         for _ in range(1, config["n_mutations_per_type"]+1):
@@ -115,7 +123,7 @@ def generate_off_targets(sequence: Seq, config) -> list[Tuple[str,str, int, floa
                 nt = random.choice(['A', 'T', 'C', 'G'])
                 off_target.insert(insertion_point, nt)
                 gap_sequence.insert(insertion_point, '-') # generate to have a correct alignement with of the sequnces (- with be encoded as a 0 vector)
-            data.extend(generate_datasamples(sequence, off_target, gap_sequence, off_target, sample_temperatures(), i))
+            data.extend(generate_datasamples(sequence, off_target, gap_sequence, off_target, sample_temperatures(2), i))
             # delete i nts
             target = MutableSeq(sequence)
             deletion_point = random.randint(0, len(sequence) - i) # leave the sapace to delete i nucleotides
@@ -124,7 +132,7 @@ def generate_off_targets(sequence: Seq, config) -> list[Tuple[str,str, int, floa
             gap_target = MutableSeq(target)
             for _ in range(i):
                 gap_target.insert(deletion_point, '-') # generate to have a correct alignement with of the sequnces
-            data.extend(generate_datasamples(sequence, target, gap_target, sequence, sample_temperatures(), i))
+            data.extend(generate_datasamples(sequence, target, gap_target, sequence, sample_temperatures(2), i))
     return data
 
 def generate_dataset(alignments: list):

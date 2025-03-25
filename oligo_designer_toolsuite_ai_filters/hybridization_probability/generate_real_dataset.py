@@ -28,7 +28,7 @@ import nupack
 from math import log
 import joblib
 
-from .generate_artificial_dataset import split_list, reverse_complement, compute_free_energy, generate_datasamples
+from .generate_artificial_dataset import split_list, reverse_complement, generate_datasamples, generate_dataset, sample_temperatures
 
 
 base_pair = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'a':'T', 't':'A', 'c':'G', 'g':'C'}
@@ -74,9 +74,10 @@ def generate_off_targets_region(
 
     # create the output
     off_targets = []
+    off_targets.extend(generate_datasamples(query, query, query, query, sample_temperatures(6),0))
     for query, reference, gapped_query, gapped_reference in zip(queries, references, gapped_queries, gapped_references):
         n_mismatches = sum(q != r for q, r in zip(gapped_query, gapped_reference))
-        off_targets.append((str(gapped_query), str(gapped_reference), n_mismatches, duplexing_log_scores(str(query), str(reference), model, concentration)))
+        off_targets.extend(generate_datasamples(query, reference, gapped_query, gapped_reference, sample_temperatures(2), n_mismatches))
     return off_targets
 
 
@@ -112,21 +113,6 @@ def generate_off_targets(
 
     return dataset
 
-
-def generate_dataset(alignments: list):
-    dataset = pd.DataFrame(index=list(range(len(alignments))), columns=["query_sequence", "query_length", "query_GC_content", "off_target_sequence", "off_target_length", "off_target_GC_content", "number_mismatches", "duplexing_log_score"])
-    for i, (oligo, off_target, nr_mismatches, d_log_score) in enumerate(alignments):
-        dataset.loc[i] = [
-            oligo, #oligo sequence
-            len(oligo),# oligo length
-            gc_fraction(oligo),
-            off_target,
-            len(off_target), # off target length
-            round(gc_fraction(off_target)), # off target gc content
-            nr_mismatches,
-            d_log_score,
-        ]
-    return dataset
 
 
 def sample_oligos(oligo_database: OligoDatabase, oligos_per_region: int):
