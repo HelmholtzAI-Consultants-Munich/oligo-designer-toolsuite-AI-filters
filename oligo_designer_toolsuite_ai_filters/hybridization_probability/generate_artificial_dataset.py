@@ -25,7 +25,7 @@ from math import log
 import joblib
 
 
-base_pair = {'A':'T', 'T':'A', 'C':'G', 'G':'C'} #, 'a':'t', 't':'a', 'c':'g', 'g':'c'}
+base_pair = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'a':'t', 't':'a', 'c':'g', 'g':'c'}
 
 def split_list(l: list, spilts_perc: list[float]):
     assert sum(spilts_perc) == 1, "The splits percentages must su up to 1"
@@ -80,7 +80,7 @@ def generate_datasamples(oligo: str, target: str, gap_oligo: str, gap_off_target
     """Compute a free energy for each temperature in the list of temperatures for the given oligo and target sequences."""
     data_samples = []
     for temperature in temperatures:
-        data_samples.append((gap_oligo, target, nr_mismatches, temperature, compute_free_energy(oligo, reverse_complement(target), temperature)))
+        data_samples.append((gap_oligo, gap_off_target, nr_mismatches, temperature, compute_free_energy(oligo, reverse_complement(target), temperature)))
     return data_samples
 
 def sample_temperatures(n: int = 1) -> List[float]:
@@ -223,7 +223,8 @@ def main():
     plots_dir = os.path.join(config["dir_output"], f"{dataset_name}_plots")
     os.makedirs(plots_dir, exist_ok=True)
     # nupack run
-    nupack.config.threads = config["n_jobs"] # use all cores
+    #
+    # nupack.config.threads = config["n_jobs"] # use all cores
     nupack.config.cache = config["nupack_cache"]
     
 
@@ -244,7 +245,7 @@ def main():
     # generate the oligo sequences #
     ################################
 
-    dir_output = "output_odt_real_" + str(time.time())
+    dir_output = "output_odt_artificial_" + str(time.time())
 
     genomic_region_genereator = GenomicRegionGenerator(dir_output = dir_output)
     region_generator = genomic_region_genereator.load_annotations(source=config["source"], source_params=config["source_params"])
