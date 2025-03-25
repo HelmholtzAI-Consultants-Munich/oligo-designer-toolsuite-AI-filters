@@ -28,7 +28,7 @@ import nupack
 from math import log
 import joblib
 
-from .generate_artificial_dataset import split_list, reverse_complement, generate_datasamples, generate_dataset, sample_temperatures
+from  oligo_designer_toolsuite_ai_filters.hybridization_probability.generate_artificial_dataset import split_list, generate_datasamples, generate_dataset, sample_temperatures
 
 
 base_pair = {'A':'T', 'T':'A', 'C':'G', 'G':'C', 'a':'T', 't':'A', 'c':'G', 'g':'C'}
@@ -54,7 +54,6 @@ def generate_off_targets_region(
     :type region_id: str
     """
 
-    model = nupack.Model()
     # run the filter
     table_hits = alignment_method._run_filter(
         sequence_type='oligo',
@@ -67,6 +66,7 @@ def generate_off_targets_region(
     # add the gaps
     references = alignment_method._get_references(table_hits, file_reference, region_id)
     queries = alignment_method._get_queries(oligo_database, table_hits,'oligo', region_id)
+    unique_queries = list(set(queries))
     # align the references and queries by adding gaps
     gapped_queries, gapped_references = alignment_method._add_alignment_gaps(
         table_hits=table_hits, queries=queries, references=references
@@ -74,7 +74,8 @@ def generate_off_targets_region(
 
     # create the output
     off_targets = []
-    off_targets.extend(generate_datasamples(query, query, query, query, sample_temperatures(6),0))
+    for query in unique_queries:
+        off_targets.extend(generate_datasamples(query, query, query, query, sample_temperatures(6),0))
     for query, reference, gapped_query, gapped_reference in zip(queries, references, gapped_queries, gapped_references):
         n_mismatches = sum(q != r for q, r in zip(gapped_query, gapped_reference))
         off_targets.extend(generate_datasamples(query, reference, gapped_query, gapped_reference, sample_temperatures(2), n_mismatches))
@@ -199,7 +200,7 @@ def main():
     plots_dir = os.path.join(config["dir_output"], f"{dataset_name}_plots")
     os.makedirs(plots_dir, exist_ok=True)
     # nupack run
-    nupack.config.threads = config["n_jobs"] # use all cores
+    # nupack.config.threads = config["n_jobs"] # use all cores
     nupack.config.cache = config["nupack_cache"]
     
 
@@ -234,6 +235,7 @@ def main():
         lines = handle.readlines()
         genes = [line.rstrip() for line in lines]
     genes_train, genes_validation, genes_test = split_list(genes, config["splits_size"])
+    print(genes_train, genes_validation, genes_test)
 
     ##### creating the oligo sequences #####
     oligo_sequences = OligoSequenceGenerator(dir_output=dir_output)
@@ -245,8 +247,13 @@ def main():
     )
 
     oligo_database_train = generate_oligos(config, dir_output, genes_train, oligo_fasta_file)
+    from sys import getsizeof
+    print(getsizeof(oligo_database_train.database))
+    oligo_database_train = sample_oligos(oligo_database=oligo_database_train, oligos_per_region=config["oligos_per_region"])
     oligo_database_validation = generate_oligos(config, dir_output, genes_validation, oligo_fasta_file)
+    oligo_database_validation = sample_oligos(oligo_database=oligo_database_validation, oligos_per_region=config["oligos_per_region"])
     oligo_database_test = generate_oligos(config, dir_output, genes_test, oligo_fasta_file)
+    oligo_database_test = sample_oligos(oligo_database=oligo_database_test, oligos_per_region=config["oligos_per_region"])
 
     reference_database = ReferenceDatabase(dir_output=dir_output)
     reference_database.load_database_from_fasta(files_fasta = files_fasta, database_overwrite = True,)
@@ -265,11 +272,6 @@ def main():
     logging.info("Test set:")
     for gene in oligo_database_test.database.keys():
         logging.info(f"Gene {gene} has {len(oligo_database_test.database[gene].keys())} oligos.")
-
-    # sample the oligos
-    oligo_database_train = sample_oligos(oligo_database=oligo_database_train, oligos_per_region=config["oligos_per_region"])
-    oligo_database_validation = sample_oligos(oligo_database=oligo_database_validation, oligos_per_region=config["oligos_per_region"])
-    oligo_database_test = sample_oligos(oligo_database=oligo_database_test, oligos_per_region=config["oligos_per_region"])
 
 
     ################################################################
@@ -348,10 +350,10 @@ def main():
     validation_dataset["Source"] = "Validation"
     test_dataset["Source"] = "Test"
     dataset = pd.concat([train_dataset, validation_dataset, test_dataset])
-    dataset["Duplexing score"] = dataset["duplexing_log_score"] # rename for better understanding
-    sns.boxplot(data=dataset, x="Source", y="Duplexing score")
-    plt.title("Duplexing scores distributions")
-    plt.savefig(os.path.join(plots_dir,"Duplexing_scores_distribution.pdf"))
+    dataset["Free Energy"] = dataset["free_energy"] # rename for better understanding
+    sns.boxplot(data=dataset, x="Source", y="Free Energy")
+    plt.title("Free Energy distributions")
+    plt.savefig(os.path.join(plots_dir,"Free_Energy_distribution.pdf"))
     
     # plot distributions of the n mismatches
     plt.figure(4)
