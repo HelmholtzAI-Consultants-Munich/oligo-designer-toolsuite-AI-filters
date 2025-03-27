@@ -4,6 +4,9 @@ This repository is an AI plug-ins for the Oligo Designer Toolsuite package. Here
 For each task we provide a pretrained model, but also the code impelemtation to train you own model with the architecture and hypeparameters you prefer.
 In general, the model training pipeline performs a grid hyperparameters seach and stores all the models trained in a folder [filter_type]/[model_architecture]/[dataset_name]. Then the best model is saved inthe same folder under the filter_type name.
 
+## Installation
+To install the NUPACK software follw the instructions on the official [documentation](https://docs.nupack.org/start/#installation-requirements)
+
 
 ## Available AI models.
 

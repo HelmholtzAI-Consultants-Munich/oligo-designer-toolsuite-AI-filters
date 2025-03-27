@@ -1,2 +1,12 @@
 *.pyc
 dist
+wandb
+data*
+nupack*
+output_odt*
+build
+log_*
+__pycache__
+*.egg-info
+*.egg
+*.log

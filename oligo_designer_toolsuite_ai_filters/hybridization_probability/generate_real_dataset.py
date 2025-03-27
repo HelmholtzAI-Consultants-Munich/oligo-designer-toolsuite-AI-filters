@@ -135,7 +135,7 @@ def generate_oligos(config: dict, dir_output: str, regions: list, oligo_fasta_fi
     oligo_database = OligoDatabase(
         min_oligos_per_region=0,
         write_regions_with_insufficient_oligos=True,
-        lru_db_max_in_memory=config["n_jobs"] * 2 + 1,
+        lru_db_max_in_memory=config["n_jobs"] + 1,
         database_name=f"oligo_database_{str(time.time())}",
         dir_output=dir_output,
     )
@@ -235,7 +235,10 @@ def main():
         lines = handle.readlines()
         genes = [line.rstrip() for line in lines]
     genes_train, genes_validation, genes_test = split_list(genes, config["splits_size"])
-    print(genes_train, genes_validation, genes_test)
+    logging.info(f"Length of genes: {len(genes)}")
+    logging.info(f"Length of genes train: {len(genes_train)}")
+    logging.info(f"Length of genes validation: {len(genes_validation)}")
+    logging.info(f"Length of genes test: {len(genes_test)}")
 
     ##### creating the oligo sequences #####
     oligo_sequences = OligoSequenceGenerator(dir_output=dir_output)
@@ -245,16 +248,30 @@ def main():
         region_ids=genes,
         n_jobs=config["n_jobs"],
     )
-
+    logging.info("Generationg Oligo seqeunces.")
     oligo_database_train = generate_oligos(config, dir_output, genes_train, oligo_fasta_file)
-    from sys import getsizeof
-    print(getsizeof(oligo_database_train.database))
     oligo_database_train = sample_oligos(oligo_database=oligo_database_train, oligos_per_region=config["oligos_per_region"])
+    logging.info("Training set:")
+    for gene in oligo_database_train.database.keys():
+        logging.info(f"Gene {gene} has {len(oligo_database_train.database[gene].keys())} oligos.")
     oligo_database_validation = generate_oligos(config, dir_output, genes_validation, oligo_fasta_file)
     oligo_database_validation = sample_oligos(oligo_database=oligo_database_validation, oligos_per_region=config["oligos_per_region"])
+    logging.info("Validation set:")
+    for gene in oligo_database_validation.database.keys():
+        logging.info(f"Gene {gene} has {len(oligo_database_validation.database[gene].keys())} oligos.")
     oligo_database_test = generate_oligos(config, dir_output, genes_test, oligo_fasta_file)
     oligo_database_test = sample_oligos(oligo_database=oligo_database_test, oligos_per_region=config["oligos_per_region"])
+    logging.info("Test set:")
+    for gene in oligo_database_test.database.keys():
+        logging.info(f"Gene {gene} has {len(oligo_database_test.database[gene].keys())} oligos.")
 
+    logging.info("Generated oligos.")
+
+    ################################
+    # generate the reference database #
+    ################################
+
+    logging.info("Generating reference database.")
     reference_database = ReferenceDatabase(dir_output=dir_output)
     reference_database.load_database_from_fasta(files_fasta = files_fasta, database_overwrite = True,)
     file_reference = reference_database.write_database_to_fasta(
@@ -262,17 +279,7 @@ def main():
         )
 
     # log database information
-    logging.info("Oligo seqeunces generated.")
-    logging.info("Training set:")
-    for gene in oligo_database_train.database.keys():
-        logging.info(f"Gene {gene} has {len(oligo_database_train.database[gene].keys())} oligos.")
-    logging.info("Validation set:")
-    for gene in oligo_database_validation.database.keys():
-        logging.info(f"Gene {gene} has {len(oligo_database_validation.database[gene].keys())} oligos.")
-    logging.info("Test set:")
-    for gene in oligo_database_test.database.keys():
-        logging.info(f"Gene {gene} has {len(oligo_database_test.database[gene].keys())} oligos.")
-
+    
 
     ################################################################
     # generate real off-targets and compute duplexing scores #
