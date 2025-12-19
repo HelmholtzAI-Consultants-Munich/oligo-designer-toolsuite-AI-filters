@@ -20,4 +20,4 @@
 
 
 CUDA_VISIBLE_DEVICES=0,1
-python oligo_designer_toolsuite_ai_filters/hybridization_probability/train_model.py -c configs/hybridization_probability/train_MLP.yaml  
+python oligo_designer_toolsuite_ai_filters/hybridization_probability/train_model.py -c configs/hybridization_probability/train_MLP.yaml

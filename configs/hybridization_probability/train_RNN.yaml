@@ -11,7 +11,7 @@ features_size: 5 # number of additional features
 include_features: False # include affitional features
 
 n_trials: 30  # number of hyperparameters combinations optuna will try
-n_epochs: 1000 # maximum number of epoch executed during training 
+n_epochs: 1000 # maximum number of epoch executed during training
 patience: 20
 scheduler_factor: 0.5
 scheduler_patience: 10

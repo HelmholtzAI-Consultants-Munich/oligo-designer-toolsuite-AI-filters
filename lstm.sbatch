@@ -18,4 +18,4 @@
 ### User's commands, apps, parameters, etc. for e.g:
 
 CUDA_VISIBLE_DEVICES=0
-python oligo_designer_toolsuite_ai_filters/hybridization_probability/train_model.py -c configs/hybridization_probability/train_LSTM.yaml  
+python oligo_designer_toolsuite_ai_filters/hybridization_probability/train_model.py -c configs/hybridization_probability/train_LSTM.yaml

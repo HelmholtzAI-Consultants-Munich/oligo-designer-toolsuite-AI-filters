@@ -16,10 +16,10 @@ With a Recurrent Neural Network we estimate the hybridization probability betwee
 For generating the ground-truths of the hybridization-probability filters we use the [NUPACK](https://docs.nupack.org/) pakage, which estimasates the equilibrium cooncentrations of DNA complexes.
 In particualr, the score is obtained from the final concentration of DNA complexes in NUPACK tube experiment simulation
 that contains the oligo sequence, the exact on-target region and the off-target. The oligo, on-target and off-target
-strands are initially set at the same concentration $C_{in}$ and we define the duplexing score as: 
+strands are initially set at the same concentration $C_{in}$ and we define the duplexing score as:
 
-$log( \dfrac{C_{oligo + off-t}}{C_{oligo + off-t}  + C_{oligo + on-t} })$. 
-    
+$log( \dfrac{C_{oligo + off-t}}{C_{oligo + off-t}  + C_{oligo + on-t} })$.
+
 add how to install nupack
 
 ## Pretrained models
