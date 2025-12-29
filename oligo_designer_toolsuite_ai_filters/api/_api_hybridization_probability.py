@@ -1,10 +1,8 @@
 import os
-from typing import List
 
 import numpy as np
 import pandas as pd
 import torch
-from Bio import Seq
 from Bio.SeqUtils import gc_fraction
 from torch.utils.data import DataLoader
 
@@ -45,10 +43,10 @@ class APIHybridizationProbability(APIBase):
 
     def predict(
         self,
-        queries: list[Seq.Seq],
-        gapped_queries: list[Seq.Seq],
-        references: list[Seq.Seq],
-        gapped_references: list[Seq.Seq],
+        queries: list[str],
+        gapped_queries: list[str],
+        references: list[str],
+        gapped_references: list[str],
         batch_size: int | None = None,
     ) -> np.ndarray:
         # generate the dataset
@@ -72,10 +70,10 @@ class APIHybridizationProbability(APIBase):
 
     def _generate_dataset(
         self,
-        queries: List[Seq.Seq],
-        gapped_queries: List[Seq.Seq],
-        references: List[Seq.Seq],
-        gapped_references: List[Seq.Seq],
+        queries: list[str],
+        gapped_queries: list[str],
+        references: list[str],
+        gapped_references: list[str],
     ) -> pd.DataFrame:
         """Create a database with the information of the oligos that match the blast search.
 
